@@ -2,6 +2,7 @@ package dev.fiki.forgehax.api.event;
 
 import org.junit.jupiter.api.*;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,26 @@ public class EventBusTest {
   @DisplayName("registering events")
   @Order(1)
   void registerEvent() {
+    /*
+     // access flags 0x8
+      static <clinit>()V
+      L0
+      LINENUMBER 95 L0
+      NEW dev/fiki/forgehax/api/event/ListenerList
+      DUP
+      LDC Ldev/fiki/forgehax/api/event/EventBusTest$TestEventImplExt;.class
+      INVOKESPECIAL dev/fiki/forgehax/api/event/ListenerList.<init> (Ljava/lang/Class;)V
+      PUTSTATIC dev/fiki/forgehax/api/event/EventBusTest$TestEventImplExt.LISTENER_LIST : Ldev/fiki/forgehax/api/event/ListenerList;
+      RETURN
+      MAXSTACK = 3
+      MAXLOCALS = 0
+     */
+    //@BUG without accessing listenerList, class B derived from class A will use class A listener too when posting.
+    // I dunno if this issue continues in runtime
+    // I want to play pokemons already, not going to full scale investigation
+    // Seems clinit is not used properly.
+    TestEventImpl.listenerList();
+    TestEventImplExt.listenerList();
     eventBus.register(object);
 
     assertThat(TestEventImpl.listenerList())
