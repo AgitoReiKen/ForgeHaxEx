@@ -6,7 +6,7 @@ import dev.fiki.forgehax.api.cmd.settings.IntegerSetting;
 import dev.fiki.forgehax.api.color.Colors;
 import dev.fiki.forgehax.api.common.PriorityEnum;
 import dev.fiki.forgehax.api.draw.GeometryMasks;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.events.PlayerConnectEvent;
 import dev.fiki.forgehax.api.events.entity.LocalPlayerUpdateEvent;
@@ -128,10 +128,10 @@ public class LogoutSpot extends ToggleMod {
         if (upper.isVisible()) {
           double distance = getLocalPlayer().position().distanceTo(top);
           String name = String.format("%s (%.1f)", spot.getName(), distance);
-          SurfaceHelper.drawTextShadow(
+          Render2D.drawTextShadow(
               name,
-              (float) (upper.getX() - (SurfaceHelper.getStringWidth(name) / 2.f)),
-              (float) (upper.getY() - (SurfaceHelper.getStringHeight() + 1.f)),
+              (float) (upper.getX() - (Render2D.getStringWidth(name) / 2.f)),
+              (float) (upper.getY() - (Render2D.getStringHeight() + 1.f)),
               Colors.RED.toBuffer());
         }
       });

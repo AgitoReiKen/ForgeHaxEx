@@ -66,6 +66,7 @@ public abstract class AbstractParentCommand extends AbstractCommand implements I
 
   @Override
   public boolean addChild(ICommand command) {
+    getLog().debug("Name: {} | Parent: {} | D: {}", command.getName(), command.getParent().getName(), command.getDescription());
     checkForNameConflicts(command);
 
     // add all known names

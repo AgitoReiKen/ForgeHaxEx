@@ -5,7 +5,7 @@ import dev.fiki.forgehax.api.cmd.settings.BooleanSetting;
 import dev.fiki.forgehax.api.cmd.settings.EnumSetting;
 import dev.fiki.forgehax.api.cmd.settings.LongSetting;
 import dev.fiki.forgehax.api.color.Colors;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.events.render.RenderPlaneEvent;
 import dev.fiki.forgehax.api.math.AlignHelper;
@@ -132,13 +132,13 @@ public class ActiveModList extends HudMod {
           .forEach(name -> text.add(AlignHelper.getFlowDirX2(align) == 1 ? ">" + name : name + "<"));
     }
 
-    SurfaceHelper.drawTextAlign(text, getPosX(0), getPosY(0),
+    Render2D.drawTextAlign(text, getPosX(0), getPosY(0),
         Colors.WHITE.toBuffer(), scale.getValue(), true, align);
   }
 
   private enum SortMode {
     ALPHABETICAL((o1, o2) -> 0), // mod list is already sorted alphabetically
-    LENGTH(Comparator.<String>comparingInt(SurfaceHelper::getTextWidth).reversed());
+    LENGTH(Comparator.<String>comparingInt(Render2D::getTextWidth).reversed());
 
     private final Comparator<String> comparator;
 

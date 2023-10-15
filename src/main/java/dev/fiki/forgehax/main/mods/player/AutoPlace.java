@@ -125,7 +125,7 @@ public class AutoPlace extends ToggleMod {
       .description("Bind for selection")
       .keyName("Select")
       .defaultKeyCategory()
-      .key(KeyInputs.MOUSE_LEFT)
+      .key(KeyInputs.UNBOUND)
       .conflictContext(KeyConflictContexts.inGame())
       .build();
 
@@ -134,7 +134,7 @@ public class AutoPlace extends ToggleMod {
       .description("Bind for finishing")
       .keyName("Finish")
       .defaultKeyCategory()
-      .key(KeyInputs.MOUSE_RIGHT)
+      .key(KeyInputs.UNBOUND)
       .conflictContext(KeyConflictContexts.inGame())
       .build();
 

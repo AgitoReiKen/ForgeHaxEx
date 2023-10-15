@@ -7,7 +7,7 @@ import dev.fiki.forgehax.api.cmd.execution.IConsole;
 import dev.fiki.forgehax.api.color.Color;
 import dev.fiki.forgehax.api.color.Colors;
 import dev.fiki.forgehax.api.draw.RenderTypeEx;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.extension.VectorEx;
 import dev.fiki.forgehax.api.extension.VertexBuilderEx;
 import dev.fiki.forgehax.main.Common;
@@ -37,8 +37,8 @@ public class ConsoleInterface implements IGuiEventListener, IConsole {
 
   private float scale = 1.f;
 
-  private int maxSize = 100;
-  private int maxLines = 10;
+  private int maxSize = 200;
+  private int maxLines = 20;
   private int fadeOutDuration = 20;
   private int messageDuration = 100;
 
@@ -137,7 +137,7 @@ public class ConsoleInterface implements IGuiEventListener, IConsole {
 
         stack.translate(getPadding(), getPadding(), 50.f);
 
-        SurfaceHelper.renderString(source, stack.last().pose(),
+        Render2D.renderString(source, stack.last().pose(),
             message, 0, 0, Colors.WHITE.setAlpha(entry.getAlphaDecay(255)), true);
 
         stack.popPose();
@@ -180,11 +180,11 @@ public class ConsoleInterface implements IGuiEventListener, IConsole {
   }
 
   float getLineHeight() {
-    return (float) (SurfaceHelper.getStringHeight() + 2.f);
+    return (float) (Render2D.getStringHeight() + 2.f);
   }
 
   float getTextLength(String text) {
-    return (float) SurfaceHelper.getStringWidth(text);
+    return (float) Render2D.getStringWidth(text);
   }
 
   int getLineCount() {

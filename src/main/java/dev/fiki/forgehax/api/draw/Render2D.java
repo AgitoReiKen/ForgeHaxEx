@@ -27,6 +27,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.TransformationMatrix;
+import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 
@@ -47,7 +48,7 @@ import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 /**
  * 2D rendering
  */
-public class SurfaceHelper {
+public class Render2D {
   static void _rect(BufferBuilder builder,
       double x, double y, double w, double h,
       Color color) {

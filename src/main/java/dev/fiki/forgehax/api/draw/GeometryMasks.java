@@ -26,8 +26,11 @@ package dev.fiki.forgehax.api.draw;
 
 import net.minecraft.util.Direction;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public final class GeometryMasks {
-  
+
   public static final class Quad {
     public static final int DOWN = 0x01;
     public static final int UP = 0x02;
@@ -36,26 +39,20 @@ public final class GeometryMasks {
     public static final int WEST = 0x10;
     public static final int EAST = 0x20;
     public static final int ALL = DOWN | UP | NORTH | SOUTH | WEST | EAST;
-
-    public static int getFlagForDirection(Direction direction) {
-      switch (direction) {
-        case UP:
-          return UP;
-        case DOWN:
-          return DOWN;
-        case EAST:
-          return EAST;
-        case WEST:
-          return WEST;
-        case NORTH:
-          return NORTH;
-        case SOUTH:
-          return SOUTH;
-      }
-      throw new IllegalArgumentException("Unknown direction \"" + direction.name() + "\"");
+    public static final HashMap<Direction, Integer> SIDEMAP = getDefaultSideMap();
+    private static HashMap<Direction, Integer> getDefaultSideMap()
+    {
+      HashMap<Direction, Integer>  map = new HashMap<>();
+      map.put(Direction.DOWN, Quad.DOWN);
+      map.put(Direction.UP, Quad.UP);
+      map.put(Direction.NORTH, Quad.NORTH);
+      map.put(Direction.SOUTH, Quad.SOUTH);
+      map.put(Direction.WEST, Quad.WEST);
+      map.put(Direction.EAST, Quad.EAST);
+      return map;
     }
   }
-  
+
   public static final class Line {
     public static final int DOWN_WEST = 0x001;
     public static final int UP_WEST = 0x002;
@@ -82,23 +79,20 @@ public final class GeometryMasks {
             | NORTH_EAST
             | SOUTH_WEST
             | SOUTH_EAST;
-
+    public static final HashMap<Direction, Integer> SIDEMAP = getDefaultSideMap();
+    private static HashMap<Direction, Integer> getDefaultSideMap()
+    {
+      HashMap<Direction, Integer>  map = new HashMap<>();
+      map.put(Direction.UP, UP_WEST | UP_EAST | UP_NORTH | UP_SOUTH);
+      map.put(Direction.DOWN, DOWN_WEST | DOWN_EAST | DOWN_NORTH | DOWN_SOUTH);
+      map.put(Direction.EAST, DOWN_EAST | UP_EAST | NORTH_EAST | SOUTH_EAST);
+      map.put(Direction.SOUTH, SOUTH_WEST | SOUTH_EAST | DOWN_SOUTH | UP_SOUTH);
+      map.put(Direction.NORTH, NORTH_WEST | NORTH_EAST | UP_NORTH | DOWN_NORTH);
+      map.put(Direction.WEST, DOWN_WEST | UP_WEST | NORTH_WEST | SOUTH_WEST);
+      return map;
+    }
     public static int getFlagForDirection(Direction direction) {
-      switch (direction) {
-        case UP:
-          return UP_WEST | UP_EAST | UP_NORTH | UP_SOUTH;
-        case DOWN:
-          return DOWN_WEST | DOWN_EAST | DOWN_NORTH | DOWN_SOUTH;
-        case EAST:
-          return DOWN_EAST | UP_EAST | NORTH_EAST | SOUTH_EAST;
-        case WEST:
-          return DOWN_WEST | UP_WEST | NORTH_WEST | SOUTH_WEST;
-        case NORTH:
-          return NORTH_WEST | NORTH_EAST | UP_NORTH | DOWN_NORTH;
-        case SOUTH:
-          return SOUTH_WEST | SOUTH_EAST | DOWN_SOUTH | UP_SOUTH;
-      }
-      throw new IllegalArgumentException("Unknown direction \"" + direction.name() + "\"");
+       return SIDEMAP.get(direction);
     }
   }
 }

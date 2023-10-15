@@ -32,6 +32,7 @@ class BaseSimpleSettingCollection<E, L extends Collection<E>> extends AbstractSe
 
     newSimpleCommand()
         .name("add")
+        .alias("+")
         .description("Adds an element to the collection")
         .argument(argument)
         .executor(args -> {
@@ -46,15 +47,16 @@ class BaseSimpleSettingCollection<E, L extends Collection<E>> extends AbstractSe
 
     newSimpleCommand()
         .name("remove")
-        .alias("delete")
-        .description("Removes an element to the collection")
+        .alias("rm")
+        .alias("-")
+        .description("Removes an element from the collection")
         .argument(argument)
         .executor(args -> {
           IValue<E> arg = args.getFirst();
           if (this.remove(arg.getValue())) {
             args.inform("Removed \"%s\" from the collection.", arg.getStringValue());
           } else {
-            args.warn("Could not add \"%s\" to the collection (possible duplicate?).", arg.getStringValue());
+            args.warn("Could not remove \"%s\" from the collection, there is no such element.", arg.getStringValue());
           }
         })
         .build();
@@ -62,22 +64,27 @@ class BaseSimpleSettingCollection<E, L extends Collection<E>> extends AbstractSe
     newSimpleCommand()
         .name("list")
         .alias("show")
-        .alias("display")
         .description("Lists all the elements in the collection")
         .executor(args -> {
           if (this.isEmpty()) {
             args.inform("Collection is empty.");
           } else {
-            args.inform(this.stream()
-                .map(argument::convert)
-                .collect(Collectors.joining(", ")));
+            StringBuilder builder = new StringBuilder();
+            int i =0;
+            for (E it : this)
+            {
+              builder.append(String.format("[%d] %s,", i, it.toString()));
+              ++i;
+            }
+            builder.deleteCharAt(builder.length()-1);
+            args.inform(builder.toString());
           }
         })
         .build();
 
     newSimpleCommand()
-        .name("clear")
-        .description("Clear all the elements in the collection")
+        .name("removeAll")
+        .description("Remove all the elements in the collection")
         .executor(args -> {
           int size = this.size();
           this.clear();
@@ -119,4 +126,5 @@ class BaseSimpleSettingCollection<E, L extends Collection<E>> extends AbstractSe
   protected String printableValue(E o) {
     return getConverterArgument().print(o);
   }
+
 }

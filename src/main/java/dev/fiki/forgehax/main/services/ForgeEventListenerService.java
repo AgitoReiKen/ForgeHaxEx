@@ -6,6 +6,7 @@ import dev.fiki.forgehax.api.asm.MapMethod;
 import dev.fiki.forgehax.api.event.Event;
 import dev.fiki.forgehax.api.events.ConnectToServerEvent;
 import dev.fiki.forgehax.api.events.DisconnectFromServerEvent;
+import dev.fiki.forgehax.api.events.entity.EntityRenderEvent;
 import dev.fiki.forgehax.api.events.entity.LivingUpdateEvent;
 import dev.fiki.forgehax.api.events.entity.LocalPlayerUpdateEvent;
 import dev.fiki.forgehax.api.events.game.*;
@@ -34,7 +35,6 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.opengl.GL11;
-
 import static dev.fiki.forgehax.main.Common.*;
 
 @RegisterMod
@@ -176,6 +176,11 @@ public final class ForgeEventListenerService extends ServiceMod {
     event.setCanceled(getEventBus().post(e));
     event.setDensity(e.getDensity());
   }
+//  @SubscribeEvent
+//  public void onEntityRender(EntityViewRenderEvent event) {
+//    EntityRenderEvent e = new EntityRenderEvent(event.getRenderer(), event.getInfo());
+//    event.setCanceled(getEventBus().post(e));
+//  }
 
   @SubscribeEvent
   public void onEntityUpdate(LivingEvent.LivingUpdateEvent event) {

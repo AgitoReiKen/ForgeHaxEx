@@ -3,7 +3,7 @@ package dev.fiki.forgehax.main.mods.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.fiki.forgehax.api.cmd.settings.BooleanSetting;
 import dev.fiki.forgehax.api.common.PriorityEnum;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.events.render.LivingRenderEvent;
 import dev.fiki.forgehax.api.events.render.RenderPlaneEvent;
@@ -90,7 +90,7 @@ public class WaifuESP extends ToggleMod {
           MC.getTextureManager().bind(waifu);
 
           RenderSystem.color4f(1.f, 1.f, 1.f, 1.f);
-          SurfaceHelper.drawScaledCustomSizeModalRect(
+          Render2D.drawScaledCustomSizeModalRect(
               x, y, 0, 0, width, height, width, height, width, height);
         }
       }

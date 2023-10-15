@@ -163,6 +163,13 @@ public class ColorMap {
       NAME_TO_HASH.put(name, hash);
     }
   }
+  void register(int r, int g, int b, int a, String... names) {
+    int hash = Color.of(r, g, b, a).toBuffer();
+    for (String name : names) {
+      HASH_TO_NAME.put(hash, name);
+      NAME_TO_HASH.put(name, hash);
+    }
+  }
 
   public int getHash(String colorName) {
     return NAME_TO_HASH.getInt(colorName);

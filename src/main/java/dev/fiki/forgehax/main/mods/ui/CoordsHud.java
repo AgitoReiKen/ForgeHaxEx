@@ -2,7 +2,7 @@ package dev.fiki.forgehax.main.mods.ui;
 
 import dev.fiki.forgehax.api.cmd.settings.BooleanSetting;
 import dev.fiki.forgehax.api.color.Colors;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.events.entity.LocalPlayerUpdateEvent;
 import dev.fiki.forgehax.api.events.render.RenderPlaneEvent;
@@ -91,7 +91,7 @@ public class CoordsHud extends HudMod {
       }
     }
 
-    SurfaceHelper.drawTextAlign(text, getPosX(0), getPosY(0),
+    Render2D.drawTextAlign(text, getPosX(0), getPosY(0),
         Colors.WHITE.toBuffer(), scale.getValue(), true, alignment.getValue().ordinal());
   }
 }

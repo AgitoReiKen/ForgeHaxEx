@@ -265,7 +265,7 @@ public class VertexBuilderEx {
       AxisAlignedBB bb,
       final int sides,
       @Nullable Color color, @Nullable Matrix4f matrix) {
-    return filledCube(builder, bb.minX, bb.minY, bb.maxX,
+    return filledCube(builder, bb.minX, bb.minY, bb.minZ,
         bb.maxX, bb.maxY, bb.maxZ, sides, color, matrix);
   }
 

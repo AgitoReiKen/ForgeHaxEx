@@ -2,7 +2,7 @@ package dev.fiki.forgehax.main.mods.render;
 
 import dev.fiki.forgehax.api.cmd.settings.DoubleSetting;
 import dev.fiki.forgehax.api.color.Colors;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.events.render.RenderPlaneEvent;
 import dev.fiki.forgehax.api.mod.Category;
@@ -39,7 +39,7 @@ public class CompassMod extends ToggleMod {
 
     for (Direction dir : Direction.values()) {
       double rad = getPosOnCompass(dir);
-      SurfaceHelper.drawTextShadowCentered(
+      Render2D.drawTextShadowCentered(
           dir.name(),
           (float) (centerX + getX(rad)),
           (float) (centerY + getY(rad)),

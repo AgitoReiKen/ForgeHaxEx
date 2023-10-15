@@ -12,7 +12,7 @@ import dev.fiki.forgehax.api.color.Color;
 import dev.fiki.forgehax.api.color.Colors;
 import dev.fiki.forgehax.api.common.PriorityEnum;
 import dev.fiki.forgehax.api.draw.RenderTypeEx;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.entity.EnchantmentUtils;
 import dev.fiki.forgehax.api.entity.EnchantmentUtils.ItemEnchantment;
 import dev.fiki.forgehax.api.entity.RelationState;
@@ -39,23 +39,29 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import org.lwjgl.opengl.GL11;
 
 import java.util.*;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static dev.fiki.forgehax.main.Common.*;
 
 @RegisterMod(
-    name = "ESP",
+    name = "EntityESP",
     description = "Shows entity locations and info",
     category = Category.RENDER
 )
 @ExtensionMethod({EntityEx.class, VectorEx.class, VertexBuilderEx.class})
-public class ESP extends ToggleMod {
+public class EntityESP extends ToggleMod {
   private static final int HEALTHBAR_WIDTH = 15;
   private static final int HEALTHBAR_HEIGHT = 3;
+
 
   private final DrawingSetting playerOptions = newDrawingSetting()
       .name("players")
@@ -81,7 +87,6 @@ public class ESP extends ToggleMod {
       .targetRelation(RelationState.FRIENDLY)
       .color(Colors.BLUE)
       .build();
-
   private Color getColorLevel(float scale) {
     return Color.of((int) ((255 - scale) * 255), (int) (255 * scale), 0);
   }
@@ -115,7 +120,6 @@ public class ESP extends ToggleMod {
     val buffers = getBufferProvider().getBufferSource();
     val triangles = getBufferProvider().getBuffer(RenderTypeEx.glTriangle());
     val stack = event.getStack();
-
     val selfEquipmentList = new EquipmentList(getLocalPlayer());
 
     for (Entity ent : getWorld().entitiesForRendering()) {
@@ -167,16 +171,16 @@ public class ESP extends ToggleMod {
               stack.translate(topX, topY - offsetY - 1, 0.f);
               String text = Math.round(hp * 100.f) + "%";
 
-              float x = (float) (SurfaceHelper.getStringWidth(text) / 2.f);
-              float y = (float) SurfaceHelper.getStringHeight();
+              float x = (float) (Render2D.getStringWidth(text) / 2.f);
+              float y = (float) Render2D.getStringHeight();
 
               stack.scale(textScale, textScale, 0.f);
               stack.translate(-x, -y, 0.d);
 
-              SurfaceHelper.renderString(buffers, stack.last().pose(),
+              Render2D.renderString(buffers, stack.last().pose(),
                   text, 0, 0, color, true);
 
-              offsetY += SurfaceHelper.getStringHeight() + 1.f;
+              offsetY += Render2D.getStringHeight() + 1.f;
               stack.popPose();
               break;
             }
@@ -210,16 +214,16 @@ public class ESP extends ToggleMod {
             name = living.getScoreboardName();
           }
 
-          float x = (float) (SurfaceHelper.getStringWidth(name) / 2.f);
-          float y = (float) SurfaceHelper.getStringHeight();
+          float x = (float) (Render2D.getStringWidth(name) / 2.f);
+          float y = (float) Render2D.getStringHeight();
 
           stack.scale(textScale, textScale, 0.f);
           stack.translate(-x, -y, 0.d);
 
-          SurfaceHelper.renderString(buffers, stack.last().pose(),
+          Render2D.renderString(buffers, stack.last().pose(),
               name, 0, 0, Colors.WHITE, true);
 
-          offsetY += SurfaceHelper.getStringHeight() + 2.f;
+          offsetY += Render2D.getStringHeight() + 2.f;
           stack.popPose();
         }
 
@@ -257,22 +261,22 @@ public class ESP extends ToggleMod {
 
               stack.translate(0.f, -1.f, 0.f);
               stack.scale(enchantTextScale, enchantTextScale, 0.f);
-              stack.translate(0.f, -enchantments.size() * SurfaceHelper.getStringHeight(), 0.f);
+              stack.translate(0.f, -enchantments.size() * Render2D.getStringHeight(), 0.f);
 
               enchantments.sort(null);
               int j = 0;
               for (ItemEnchantment enchantment : enchantments) {
                 stack.pushPose();
-                stack.translate(1f, j++ * SurfaceHelper.getStringHeight(), -50.f);
+                stack.translate(1f, j++ * Render2D.getStringHeight(), -50.f);
 
                 // render enchantment short name
-                SurfaceHelper.renderString(buffers, stack.last().pose(),
+                Render2D.renderString(buffers, stack.last().pose(),
                     enchantment.getShortName(), 0, 0, Colors.WHITE, true);
 
                 if (enchantment.isMultiLevel()) {
                   // render level
                   String level = String.valueOf(enchantment.getLevel());
-                  stack.translate(itemSize + SurfaceHelper.getStringWidth(level) - 2f, 0.f, 0.f);
+                  stack.translate(itemSize + Render2D.getStringWidth(level) - 2f, 0.f, 0.f);
 
                   Color color = Colors.ORANGE;
 
@@ -288,7 +292,7 @@ public class ESP extends ToggleMod {
                     }
                   }
 
-                  SurfaceHelper.renderString(buffers, stack.last().pose(),
+                  Render2D.renderString(buffers, stack.last().pose(),
                       level, 0, 0, color, true);
                 }
 
@@ -304,12 +308,12 @@ public class ESP extends ToggleMod {
 
               stack.scale(0.5f, 0.5f, 150);
 
-              SurfaceHelper.renderString(buffers, stack.last().pose(),
+              Render2D.renderString(buffers, stack.last().pose(),
                   text, 0, 0, getColorLevel(dur), true);
               stack.popPose();
             }
 
-            SurfaceHelper.renderItemInGui(itemStack, stack, MC.renderBuffers().bufferSource());
+            Render2D.renderItemInGui(itemStack, stack, MC.renderBuffers().bufferSource());
 
             stack.popPose();
           }
@@ -331,8 +335,6 @@ public class ESP extends ToggleMod {
         }
       }
     }
-
-    //
 
     MC.getTextureManager().bind(PlayerContainer.BLOCK_ATLAS);
     MC.getTextureManager().getTexture(PlayerContainer.BLOCK_ATLAS).setBlurMipmap(false, false);
@@ -383,12 +385,12 @@ public class ESP extends ToggleMod {
 
     @Builder
     public DrawingSetting(IParentCommand parent,
-        String name, @Singular Collection<String> aliases, String description,
-        @Singular Collection<EnumFlag> flags,
-        @Singular Set<RelationState> targetRelations,
-        Boolean enabled, Boolean nameTag, HealthDisplayOption health, Boolean distance,
-        ArmorDisplayOption armor,
-        Boolean box, Color color) {
+                          String name, @Singular Collection<String> aliases, String description,
+                          @Singular Collection<EnumFlag> flags,
+                          @Singular Set<RelationState> targetRelations,
+                          Boolean enabled, Boolean nameTag, HealthDisplayOption health, Boolean distance,
+                          ArmorDisplayOption armor,
+                          Boolean box, Color color) {
       super(parent, name, aliases, description, flags);
       this.relations = EnumSet.noneOf(RelationState.class);
       this.relations.addAll(targetRelations);

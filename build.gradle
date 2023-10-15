@@ -82,6 +82,8 @@ dependencies {
   testAnnotationProcessor libs.lombok
   testImplementation libs.bundles.jupiter
   testImplementation libs.assertj
+
+  implementation libs.jocl
 }
 
 compileJava {

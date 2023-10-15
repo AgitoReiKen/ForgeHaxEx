@@ -5,14 +5,13 @@ import dev.fiki.forgehax.api.key.KeyInput;
 import dev.fiki.forgehax.api.typeconverter.primitive.*;
 import dev.fiki.forgehax.api.typeconverter.registry.BlockType;
 import dev.fiki.forgehax.api.typeconverter.registry.EffectType;
-import dev.fiki.forgehax.api.typeconverter.type.ColorType;
-import dev.fiki.forgehax.api.typeconverter.type.InputType;
-import dev.fiki.forgehax.api.typeconverter.type.KeyInputType;
-import dev.fiki.forgehax.api.typeconverter.type.PatternType;
+import dev.fiki.forgehax.api.typeconverter.type.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.potion.Effect;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**

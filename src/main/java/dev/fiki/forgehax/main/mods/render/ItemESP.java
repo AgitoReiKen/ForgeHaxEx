@@ -4,7 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import dev.fiki.forgehax.api.cmd.settings.ColorSetting;
 import dev.fiki.forgehax.api.cmd.settings.FloatSetting;
 import dev.fiki.forgehax.api.color.Colors;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.events.render.RenderPlaneEvent;
 import dev.fiki.forgehax.api.extension.EntityEx;
@@ -74,11 +74,11 @@ public class ItemESP extends ToggleMod {
 
           stack.scale(scale, scale, 0.f);
           stack.translate(
-              -SurfaceHelper.getStringWidth(text) / 2.f,
-              -SurfaceHelper.getStringHeight() / 2.f,
+              -Render2D.getStringWidth(text) / 2.f,
+              -Render2D.getStringHeight() / 2.f,
               0.f);
 
-          SurfaceHelper.renderString(buffers, stack.last().pose(),
+          Render2D.renderString(buffers, stack.last().pose(),
               text, 0, 0, color.getValue(), true);
 
           stack.popPose();

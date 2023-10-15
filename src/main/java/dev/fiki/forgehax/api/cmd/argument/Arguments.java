@@ -6,6 +6,8 @@ import dev.fiki.forgehax.api.typeconverter.type.EnumType;
 import net.minecraft.block.Block;
 import net.minecraft.potion.Effect;
 
+import java.util.regex.Pattern;
+
 public interface Arguments {
   static <T> RawArgument.RawArgumentBuilder<T> newArgument() {
     return RawArgument.<T>builder();
@@ -84,6 +86,12 @@ public interface Arguments {
         .minArgumentsConsumed(1)
         .maxArgumentsConsumed(Integer.MAX_VALUE)
         .converter(TypeConverters.STRING);
+  }
+  static ConverterArgument.ConverterArgumentBuilder<Pattern> newPatternArgument() {
+    return ConverterArgument.<Pattern>builder()
+        .minArgumentsConsumed(1)
+        .maxArgumentsConsumed(Integer.MAX_VALUE)
+        .converter(TypeConverters.PATTERN);
   }
 
   static ConverterArgument.ConverterArgumentBuilder<Color> newColorArgument() {

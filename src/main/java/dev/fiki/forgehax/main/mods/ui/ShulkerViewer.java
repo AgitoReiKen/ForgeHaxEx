@@ -9,7 +9,7 @@ import dev.fiki.forgehax.api.cmd.settings.KeyBindingSetting;
 import dev.fiki.forgehax.api.color.Color;
 import dev.fiki.forgehax.api.color.Colors;
 import dev.fiki.forgehax.api.common.PriorityEnum;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.events.render.GuiChangedEvent;
 import dev.fiki.forgehax.api.events.render.GuiRenderEvent;
@@ -343,21 +343,21 @@ public class ShulkerViewer extends ToggleMod {
       RenderSystem.disableLighting();
       RenderSystem.disableDepthTest();
 
-      SurfaceHelper.drawTextShadow(
+      Render2D.drawTextShadow(
           "Hold "
               + lockDownKey.getKeyName()
               + " to view the tooltips of a Shulker boxes content!",
           5,
-          getScreenHeight() - (int) (SurfaceHelper.getStringHeight() + 2) * 3 - 2,
+          getScreenHeight() - (int) (Render2D.getStringHeight() + 2) * 3 - 2,
           Colors.RED.toBuffer(),
           1);
-      SurfaceHelper.drawTextShadow(
+      Render2D.drawTextShadow(
           "The activation key can be configured under Minecraft's Options -> Controls -> ForgeHax -> ShulkerViewer Lock.",
           5,
-          getScreenHeight() - (int) (SurfaceHelper.getStringHeight() + 2) * 2 - 2,
+          getScreenHeight() - (int) (Render2D.getStringHeight() + 2) * 2 - 2,
           Colors.GREEN.toBuffer(),
           1);
-      SurfaceHelper.drawTextShadow(
+      Render2D.drawTextShadow(
           "Type in console \""
               + getName()
               + "\" for more options, and \""
@@ -366,7 +366,7 @@ public class ShulkerViewer extends ToggleMod {
               + help_text.getName()
               + " false\" to disable this help message.",
           5,
-          getScreenHeight() - (int) (SurfaceHelper.getStringHeight() + 2) - 2,
+          getScreenHeight() - (int) (Render2D.getStringHeight() + 2) - 2,
           Colors.YELLOW.toBuffer(),
           1);
 
@@ -446,7 +446,7 @@ public class ShulkerViewer extends ToggleMod {
       RenderSystem.disableTexture();
       RenderSystem.disableBlend();
 
-      SurfaceHelper.renderString(buffer, stack.last().pose(),
+      Render2D.renderString(buffer, stack.last().pose(),
           parentShulker.getDisplayName().getString(), 8.f, 6.f, Colors.BLACK, false).endBatch();
     }
 
@@ -488,14 +488,14 @@ public class ShulkerViewer extends ToggleMod {
           }
 
           ItemStack itemStack = slot.getItem();
-          if (!SurfaceHelper.renderItemInGui(itemStack, stack, buffers)) {
+          if (!Render2D.renderItemInGui(itemStack, stack, buffers)) {
             RenderHelper.setupForFlatItems();
           }
 
           buffers.endBatch();
           RenderHelper.setupFor3DItems();
 
-          SurfaceHelper.renderItemOverlay(buffer, stack, font, itemStack, 0, 0, null);
+          Render2D.renderItemOverlay(buffer, stack, font, itemStack, 0, 0, null);
 
           stack.popPose();
         }

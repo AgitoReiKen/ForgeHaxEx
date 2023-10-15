@@ -8,7 +8,7 @@ import dev.fiki.forgehax.api.cmd.execution.CommandExecutor;
 import dev.fiki.forgehax.api.color.Color;
 import dev.fiki.forgehax.api.color.Colors;
 import dev.fiki.forgehax.api.draw.RenderTypeEx;
-import dev.fiki.forgehax.api.draw.SurfaceHelper;
+import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.extension.VectorEx;
 import dev.fiki.forgehax.api.extension.VertexBuilderEx;
 import lombok.Getter;
@@ -550,10 +550,10 @@ public class ConsoleInputScreen extends Screen {
 
     if (!visibleText.isEmpty()) {
       String renderText = selectedTextVisible ? visibleText.substring(0, cursorOffset) : visibleText;
-      SurfaceHelper.renderString(source, stack.last().pose(), renderText,
+      Render2D.renderString(source, stack.last().pose(), renderText,
           (float) getX(), (float) getY(),
           Colors.WHITE, true);
-      offsetX += SurfaceHelper.getStringWidth(renderText) + 1;
+      offsetX += Render2D.getStringWidth(renderText) + 1;
     }
 
     boolean endStringVisible = this.cursorPosition < this.text.length()
@@ -567,12 +567,12 @@ public class ConsoleInputScreen extends Screen {
     }
 
     if (!visibleText.isEmpty() && selectedTextVisible && cursorOffset < visibleText.length()) {
-      SurfaceHelper.renderString(source, stack.last().pose(), visibleText.substring(cursorOffset),
+      Render2D.renderString(source, stack.last().pose(), visibleText.substring(cursorOffset),
           offsetX, y, color, true);
     }
 
     if (!endStringVisible && this.suggestion != null) {
-      SurfaceHelper.renderString(source, stack.last().pose(), this.suggestion,
+      Render2D.renderString(source, stack.last().pose(), this.suggestion,
           endX - 1, y, Colors.GRAY, true);
     }
 
@@ -584,7 +584,7 @@ public class ConsoleInputScreen extends Screen {
             Color.of(208, 208, 208, 255), stack.getLastMatrix());
         stack.popPose();
       } else {
-        SurfaceHelper.renderString(source, stack.last().pose(), "_",
+        Render2D.renderString(source, stack.last().pose(), "_",
             endX, y, color, true);
       }
     }
