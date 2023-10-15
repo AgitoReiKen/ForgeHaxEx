@@ -145,7 +145,7 @@ public class BlockESP extends ToggleMod {
   public BlockESP() {
     debugMode = newBooleanSetting()
         .name("debug")
-        .description("Render all blocks near the player. Don't use it with range > 1")
+        .description("Render all blocks near the player. Range > 1 will cause lags!!!")
         .defaultTo(false)
         .build();
     showPerformance = newBooleanSetting()
@@ -202,7 +202,7 @@ public class BlockESP extends ToggleMod {
         .build();
     range = newIntegerSetting()
         .name("range")
-        .description("Search radius in chunk sizes (searched as a sphere)")
+        .description("Search radius in chunk sizes")
         .defaultTo(16)
         .min(1)
         .max(32)

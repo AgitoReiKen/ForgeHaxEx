@@ -2,7 +2,9 @@ package dev.fiki.forgehax.api.mod;
 
 import com.google.common.base.Strings;
 import dev.fiki.forgehax.api.cmd.AbstractParentCommand;
+import dev.fiki.forgehax.api.cmd.ICommand;
 import dev.fiki.forgehax.api.cmd.IParentCommand;
+import dev.fiki.forgehax.api.cmd.argument.Arguments;
 import dev.fiki.forgehax.api.cmd.flag.EnumFlag;
 import dev.fiki.forgehax.api.modloader.RegisterMod;
 import dev.fiki.forgehax.main.Common;
@@ -12,7 +14,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static dev.fiki.forgehax.api.cmd.flag.EnumFlag.HIDDEN;
@@ -52,6 +56,7 @@ public abstract class AbstractMod extends AbstractParentCommand implements Commo
     addFlag(EnumFlag.SERIALIZED_NODE);
 
     onFullyConstructed();
+
   }
 
   AbstractMod() {
