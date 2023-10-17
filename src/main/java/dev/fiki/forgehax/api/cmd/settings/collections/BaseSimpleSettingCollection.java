@@ -84,11 +84,12 @@ class BaseSimpleSettingCollection<E, L extends Collection<E>> extends AbstractSe
 
     newSimpleCommand()
         .name("removeAll")
+        .alias("clear")
         .description("Remove all the elements in the collection")
         .executor(args -> {
           int size = this.size();
           this.clear();
-          args.inform("Cleared %d elements from the collection.", size);
+          args.inform("Removed %d elements from the collection.", size);
         })
         .build();
   }
