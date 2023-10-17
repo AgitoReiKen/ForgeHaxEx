@@ -111,7 +111,7 @@ public final class ForgeEventListenerService extends ServiceMod {
 
     MatrixStack stack = new MatrixStack();
     //stack.last().pose().multiply(event.getProjectionMatrix());
-    stack.last().pose().multiply(gameRenderer.getProjectionMatrix(activeRenderInfo, partialTicks, true));
+    stack.last().pose().multiply(event.getProjectionMatrix());
     GameRenderer_bobHurt.invoke(gameRenderer, stack, partialTicks);
 
     Matrix4f projectionMatrix = stack.last().pose();
@@ -129,7 +129,9 @@ public final class ForgeEventListenerService extends ServiceMod {
     RenderSystem.lineWidth(1.f);
 
     Vector3d projectedView = activeRenderInfo.getPosition();
-    getEventBus().post(new RenderSpaceEvent(event.getMatrixStack(), projectedView, partialTicks));
+    MatrixStack vpstack = new MatrixStack();
+    vpstack.last().pose().multiply(VectorUtil.getViewMatrix());
+    getEventBus().post(new RenderSpaceEvent(vpstack, projectedView, partialTicks));
 
     RenderSystem.lineWidth(1.f);
     RenderSystem.color4f(1.f, 1.f, 1.f, 1.f);

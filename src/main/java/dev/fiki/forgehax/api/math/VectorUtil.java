@@ -7,6 +7,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.math.vector.Vector4f;
 
+import java.lang.reflect.Field;
+
 import static dev.fiki.forgehax.main.Common.*;
 
 public class VectorUtil implements Common {
@@ -17,10 +19,31 @@ public class VectorUtil implements Common {
   private static Matrix4f viewMatrix = new Matrix4f();
   @Getter
   private static Matrix4f projectionViewMatrix = new Matrix4f();
+  static Field m03 = null;
+  static Field m13 = null;
+  static Field m23 = null;
 
   public static void setProjectionViewMatrix(Matrix4f projection, Matrix4f view) {
     projectionMatrix = projection.copy();
     viewMatrix = view.copy();
+    try {
+      //public float net.minecraft.util.math.vector.Matrix4f.field_226578_d_
+      if (m03 == null)
+      {
+        m03 = Matrix4f.class.getDeclaredField("field_226578_d_");
+        m13 = Matrix4f.class.getDeclaredField("field_226582_h_");
+        m23 = Matrix4f.class.getDeclaredField("field_226586_l_");
+        m03.setAccessible(true);
+        m13.setAccessible(true);
+        m23.setAccessible(true);
+      }
+      m03.set(viewMatrix, 0);
+      m13.set(viewMatrix, 0);
+      m23.set(viewMatrix, 0);
+    } catch (Throwable x)
+    {
+
+    }
     projectionViewMatrix = projectionMatrix.copy();
     projectionViewMatrix.multiply(viewMatrix);
   }
