@@ -421,7 +421,7 @@ public class BlockESP extends ToggleMod {
         long end = System.currentTimeMillis();
         long exec = end - start;
         lastExecutionTime.set(exec);
-        log.debug("[{}] {}ms.", threadIdx, exec);
+        //log.debug("[{}] {}ms.", threadIdx, exec);
       });
     }
   }
