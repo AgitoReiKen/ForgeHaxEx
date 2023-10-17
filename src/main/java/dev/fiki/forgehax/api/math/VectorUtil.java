@@ -32,26 +32,17 @@ public class VectorUtil implements Common {
   public static ScreenPos toScreen(double x, double y, double z) {
     // 0.05 = near plane, which i found in GameRenderer::getProjectionMatrix
     final float NEAR_PLANE = 0.05f;
-    final float FAR_PLANE = (getGameSettings().renderDistance * 16) * 1.41421356237f;
+    //final float FAR_PLANE = (getGameSettings().renderDistance * 16) * 1.41421356237f;
     final double screenWidth = getScreenWidth();
     final double screenHeight = getScreenHeight();
 
     Vector3d camera = getGameRenderer().getMainCamera().getPosition();
     Vector3d dir = camera.subtract(x, y, z);
 
-
     Vector4f pos = new Vector4f((float) dir.x(), (float) dir.y(), (float) dir.z(), 1.f);
-    //Vector4f pos = new Vector4f((float) x, (float) y, (float) z, 1.f);
     pos.transform(projectionViewMatrix);
 
-
     float w = pos.w();
-//    if (w <= NEAR_PLANE && Math.signum(w) != 0.f) {
-//      pos.setX(pos.x() / w);
-//      pos.setY(pos.y() / w);
-//
-
-    // >= -0.05 && <= -100
     float scale = (float) Math.max(screenWidth, screenHeight);
     if (w <= -NEAR_PLANE  && Math.signum(w) != 0.f) {
       pos.setX(pos.x() / w);
