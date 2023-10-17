@@ -122,19 +122,19 @@ public class BlockESP extends ToggleMod {
       if (maxsDiff > 0) {
         maxs.addAll(Collections.nCopies(maxsDiff, defaultMax.intValue()));
       } else if (maxsDiff < 0) {
-        maxs.subList(maxsSize - 1 + maxsDiff, maxsSize - 1).clear();
+        maxs.subList(maxsSize + maxsDiff, maxsSize).clear();
       }
 
       if (colorsDiff > 0) {
         colors.addAll(Collections.nCopies(colorsDiff, defaultColor.getValue()));
       } else if (colorsDiff < 0) {
-        colors.subList(colorsSize - 1 + colorsDiff, colorsSize - 1).clear();
+        colors.subList(colorsSize + colorsDiff, colorsSize).clear();
       }
 
       if (tracersDiff > 0) {
         tracers.addAll(Collections.nCopies(tracersDiff, defaultTracers.getValue()));
       } else if (tracersDiff < 0) {
-        tracers.subList(tracersSize - 1 + tracersDiff, tracersSize - 1).clear();
+        tracers.subList(tracersSize + tracersDiff, tracersSize).clear();
       }
       updateClassLocations();
       updateBlockDataList(threads.intValue());
@@ -213,7 +213,7 @@ public class BlockESP extends ToggleMod {
             .label("value").build()
         )
         .supplier(ArrayList::new)
-        .defaultsTo(new Integer(1))
+        .defaultsTo(new Integer(128))
         .listener(new OnMaxUpdateListener())
         .build();
     colors = newSimpleSettingList(Color.class)
@@ -447,7 +447,7 @@ public class BlockESP extends ToggleMod {
               BlockState state = section.getBlockState(x, y, z);
               if (state.getMaterial() == Material.AIR) continue;
 
-              BlockPos pos = new BlockPos(baseX + x, baseY + y, baseZ + z);
+              BlockPos pos = new BlockPos(baseX + x, section.bottomBlockY() + y, baseZ + z);
               if (debugMode.getValue()) {
                 lock.lock();
                 blockDebugLists.get(threadId).add(pos);
@@ -464,7 +464,7 @@ public class BlockESP extends ToggleMod {
                   lock.lock();
                   blockDataList.get(i).blocks.add(pos);
                   lock.unlock();
-                  return;
+                  break;
                 }
               }
             }
