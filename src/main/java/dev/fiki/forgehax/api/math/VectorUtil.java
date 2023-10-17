@@ -21,11 +21,10 @@ public class VectorUtil implements Common {
   public static void setProjectionViewMatrix(Matrix4f projection, Matrix4f view) {
     projectionMatrix = projection.copy();
     viewMatrix = view.copy();
-
     projectionViewMatrix = projectionMatrix.copy();
     projectionViewMatrix.multiply(viewMatrix);
-//    projectionViewMatrix.invert();
   }
+
 
   /**
    * Convert 3D coord into 2D coordinate projected onto the screen
@@ -33,37 +32,48 @@ public class VectorUtil implements Common {
   public static ScreenPos toScreen(double x, double y, double z) {
     // 0.05 = near plane, which i found in GameRenderer::getProjectionMatrix
     final float NEAR_PLANE = 0.05f;
-
+    final float FAR_PLANE = (getGameSettings().renderDistance * 16) * 1.41421356237f;
     final double screenWidth = getScreenWidth();
     final double screenHeight = getScreenHeight();
 
     Vector3d camera = getGameRenderer().getMainCamera().getPosition();
     Vector3d dir = camera.subtract(x, y, z);
 
+
     Vector4f pos = new Vector4f((float) dir.x(), (float) dir.y(), (float) dir.z(), 1.f);
+    //Vector4f pos = new Vector4f((float) x, (float) y, (float) z, 1.f);
     pos.transform(projectionViewMatrix);
 
+
     float w = pos.w();
-    if (w < NEAR_PLANE && w != 0) {
-      pos.perspectiveDivide();
+//    if (w <= NEAR_PLANE && Math.signum(w) != 0.f) {
+//      pos.setX(pos.x() / w);
+//      pos.setY(pos.y() / w);
+//
+
+    // >= -0.05 && <= -100
+    float scale = (float) Math.max(screenWidth, screenHeight);
+    if (w <= -NEAR_PLANE  && Math.signum(w) != 0.f) {
+      pos.setX(pos.x() / w);
+      pos.setY(pos.y() / w);
     } else {
       // epic trick to get off screen coordinates to be in the correct orientation
       // then we scale the coordinate because we want it to be off screen
-      float scale = (float) Math.max(screenWidth, screenHeight);
       pos.setX(pos.x() * -1 * scale);
       pos.setY(pos.y() * -1 * scale);
     }
+
 
     double hw = screenWidth / 2.d;
     double hh = screenHeight / 2.d;
     double pointX = (hw * pos.x()) + (pos.x() + hw);
     double pointY = -(hh * pos.y()) + (pos.y() + hh);
-
+    boolean offScreen = pointX >= 0
+        && pointX < screenWidth
+        && pointY >= 0
+        && pointY < screenHeight;
     return new ScreenPos(pointX, pointY,
-        pointX >= 0
-            && pointX < screenWidth
-            && pointY >= 0
-            && pointY < screenHeight);
+        offScreen);
   }
 
   public static ScreenPos toScreen(Vector3d vec) {

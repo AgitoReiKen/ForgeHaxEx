@@ -35,6 +35,10 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.opengl.GL11;
+
+import java.util.Arrays;
+import java.util.Collections;
+
 import static dev.fiki.forgehax.main.Common.*;
 
 @RegisterMod
@@ -106,6 +110,7 @@ public final class ForgeEventListenerService extends ServiceMod {
     final float partialTicks = event.getPartialTicks();
 
     MatrixStack stack = new MatrixStack();
+    //stack.last().pose().multiply(event.getProjectionMatrix());
     stack.last().pose().multiply(gameRenderer.getProjectionMatrix(activeRenderInfo, partialTicks, true));
     GameRenderer_bobHurt.invoke(gameRenderer, stack, partialTicks);
 
