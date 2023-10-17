@@ -37,8 +37,8 @@ public class ConsoleInterface implements IGuiEventListener, IConsole {
 
   private float scale = 1.f;
 
-  private int maxSize = 200;
-  private int maxLines = 20;
+  private int maxSize = 150;
+  private int maxLines = 15;
   private int fadeOutDuration = 20;
   private int messageDuration = 100;
 
@@ -123,7 +123,7 @@ public class ConsoleInterface implements IGuiEventListener, IConsole {
         break;
       }
 
-      Color bgColor = (index & 0x1) == 0 ? Colors.BLACK : Colors.DARK_GRAY;
+      Color bgColor = (index & 0x1) == 0 ? Colors.BLACK : Color.of(32, 32, 32);
 
       int entryLinesConsuming = Math.min(entry.getLineCount(), (maxLines - linesConsumed));
       for (int i = 0; i < entryLinesConsuming; ++i, ++linesConsumed) {
