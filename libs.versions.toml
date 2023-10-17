@@ -1,6 +1,6 @@
 [versions]
 minecraft = "1.16.5"
-forge = "1.16.5-36.2.2"
+forge = "1.16.5-36.2.29"
 lombok = "1.18.16"
 jupiter = "5.7.0"
 assertj = "3.18.1"
