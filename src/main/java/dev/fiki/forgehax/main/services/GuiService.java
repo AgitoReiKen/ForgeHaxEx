@@ -13,6 +13,7 @@ import dev.fiki.forgehax.api.mod.ServiceMod;
 import dev.fiki.forgehax.api.modloader.RegisterMod;
 import dev.fiki.forgehax.main.ui.ConsoleInputScreen;
 import dev.fiki.forgehax.main.ui.ConsoleInterface;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.settings.KeyBinding;
@@ -46,7 +47,11 @@ public class GuiService extends ServiceMod {
 
     cli.onKeyPressed(bind);
   }
-
+  @NonNull
+  public final ConsoleInterface getConsole()
+  {
+    return cli;
+  }
   @SubscribeListener
   public void onGuiInit(GuiInitializeEvent.Pre event) {
     cli.onRescale(getScreenWidth(), getScreenHeight());

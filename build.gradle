@@ -71,7 +71,10 @@ minecraft {
 mapper {
   targets sourceSets.main, sourceSets.test
 }
+def projectRootDir = project.projectDir
+def jarPath = project.pixelmonLib
 
+def fullPath = projectRootDir.path + jarPath
 dependencies {
   minecraft libs.minecraftforge
 
@@ -84,6 +87,8 @@ dependencies {
   testImplementation libs.assertj
 
   implementation libs.jocl
+  implementation files(fullPath)
+
 }
 
 compileJava {

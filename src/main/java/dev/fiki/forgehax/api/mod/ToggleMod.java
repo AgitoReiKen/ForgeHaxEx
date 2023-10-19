@@ -22,6 +22,19 @@ public class ToggleMod extends KeyBoundMod {
         .executor(args -> getEnabledSetting().setValue(!getEnabledSetting().getValue()))
         .build();
 
+    newSimpleCommand()
+        .name("reload")
+        .description("Reloads config")
+        .executor(args ->
+        {
+          boolean wasRunning = getEnabledSetting().getValue();
+          getEnabledSetting().setValue(false);
+          boolean read = readConfiguration();
+          getEnabledSetting().setValue(wasRunning);
+          args.inform(read ? "Config reloaded" : "Couldn't reload config. Check logs");
+        })
+        .build();
+
 
   }
 
