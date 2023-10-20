@@ -12,12 +12,15 @@ import dev.fiki.forgehax.api.event.SubscribeListener;
 import dev.fiki.forgehax.api.mod.Category;
 import dev.fiki.forgehax.api.mod.ToggleMod;
 import dev.fiki.forgehax.api.modloader.RegisterMod;
+import dev.fiki.forgehax.api.typeconverter.TypeConverters;
 import dev.fiki.forgehax.asm.events.render.CullCavesEvent;
 import dev.fiki.forgehax.asm.hooks.XrayHooks;
 import dev.fiki.forgehax.main.Common;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,7 +37,37 @@ public class XrayMod extends ToggleMod {
   public final SimpleSettingSet<Block> blocks = newSimpleSettingSet(Block.class)
       .name("blocks")
       .description("Blocks to xray")
-      .defaultsTo(Blocks.DIAMOND_ORE)
+      .defaultsTo(
+          new ArrayList<>(Arrays.asList(
+              TypeConverters.BLOCK.parse("minecraft:gold_ore"),
+              TypeConverters.BLOCK.parse("minecraft:iron_ore"),
+              TypeConverters.BLOCK.parse("minecraft:coal_ore"),
+              TypeConverters.BLOCK.parse("minecraft:nether_gold_ore"),
+              TypeConverters.BLOCK.parse("minecraft:lapis_ore"),
+              TypeConverters.BLOCK.parse("minecraft:diamond_ore"),
+              TypeConverters.BLOCK.parse("minecraft:redstone_ore"),
+              TypeConverters.BLOCK.parse("minecraft:emerald_ore"),
+              TypeConverters.BLOCK.parse("minecraft:nether_quartz_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:moon_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:ice_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:shiny_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:thunder_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:leaf_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:water_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:fire_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:sun_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:dusk_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:dawn_stone_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:bauxite_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:silver_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:platinum_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:ruby_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:sapphire_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:amethyst_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:crystal_ore"),
+              TypeConverters.BLOCK.parse("pixelmon:silicon_ore")
+          ))
+      )
       .argument(Arguments.newBlockArgument()
           .label("block")
           .build())
@@ -136,7 +169,9 @@ public class XrayMod extends ToggleMod {
     XrayHooks.setXrayBlocks(true);
     XrayHooks.setFullbright(fullbright.getValue());
     XrayHooks.setBlockAlphaOverride(opacity.floatValue() / 255.f);
-    XrayHooks.setShouldXrayBlock(state -> blocks.contains(state.getBlock()));
+    XrayHooks.setShouldXrayBlock(state ->
+        blocks.contains(state.getBlock())
+    );
 
     reloadWorldChunks();
   }
