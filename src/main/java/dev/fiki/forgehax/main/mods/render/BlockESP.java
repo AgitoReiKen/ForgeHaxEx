@@ -3,6 +3,7 @@ package dev.fiki.forgehax.main.mods.render;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import dev.fiki.forgehax.api.FileHelper;
 import dev.fiki.forgehax.api.cmd.listener.ICommandListener;
 import dev.fiki.forgehax.api.draw.Render2D;
 import dev.fiki.forgehax.api.events.render.RenderPlaneEvent;
@@ -62,6 +63,10 @@ import net.minecraftforge.common.world.ForgeChunkManager;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.opengl.GL11;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -263,8 +268,37 @@ public class BlockESP extends ToggleMod {
         .description("Default tracing setting")
         .defaultTo(false)
         .build();
+
     recreateExecutor();
     classLocations = new ArrayList<>();
+    newSimpleCommand()
+        .name("dumpit")
+        .description("Dumps all class resources found atm")
+        .argument(Arguments.newStringArgument().label("path").build())
+        .executor(x -> {
+          val arg = x.getFirst();
+          String path = (String) arg.getValue();
+          try {
+            int bufferSize = 0x1000000;
+            BufferedWriter writer = new BufferedWriter(new FileWriter(path), bufferSize);
+            int written = 0;
+            writer.write("[\n");
+            for (ArrayList<ResourceLocation> arl:
+                classLocations) {
+                for (ResourceLocation rl : arl)
+                {
+                  ++written;
+                  writer.write(String.format("\"%s\",\n", rl.toString()));
+                }
+            }
+            writer.write("]");
+            writer.close();
+            x.inform(String.format("Successfully dumped %d classes", written));
+          } catch (IOException e) {
+            x.inform("Exception thrown: " + e.getMessage());
+          }
+        })
+        .build();
     blockDatas = new ArrayList<>();
     cachedBlockDatas = new ArrayList<>();
     locks = new ArrayList<>();
@@ -414,7 +448,7 @@ public class BlockESP extends ToggleMod {
       }
       final int threadIdx = t;
       final int _x2 = x2;
-      val subList = sections.subList(x1, _x2 );
+      val subList = sections.subList(x1, _x2);
       executor.execute(() -> {
         long start = System.currentTimeMillis();
         continueBlockSearch(threadIdx, subList);
@@ -485,7 +519,9 @@ public class BlockESP extends ToggleMod {
     }
     lock.unlock();
   }
+
   private long lastUpdate = 0;
+
   @SubscribeListener
   public void onRender(RenderSpaceEvent event) {
     if (!this.isEnabled()) return;
@@ -575,6 +611,7 @@ public class BlockESP extends ToggleMod {
 
     //GlStateManager._depthMask(true);
   }
+
   @SubscribeListener
   public void onRender2D(RenderPlaneEvent.Back event) {
     if (!this.isEnabled()) return;
@@ -650,7 +687,7 @@ public class BlockESP extends ToggleMod {
     enableTexture();
     disableBlend();
     GL11.glColor4i(255, 255, 255, 255);
-   source.endBatch();
+    source.endBatch();
 
     RenderHelper.setupFor3DItems();
   }
