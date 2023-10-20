@@ -29,8 +29,7 @@ public class ColorType extends TypeConverter<Color> {
     if (color != null && split.length >= 2)
     {
       float opacity = Float.parseFloat(split[1]);
-      color.setAlpha(opacity > 1.0 ? opacity : opacity * 255);
-      return color;
+      return color.setAlpha(opacity > 1.0 ? opacity / 255 : opacity);
     }
     /*
     * 0xDEADFACE
