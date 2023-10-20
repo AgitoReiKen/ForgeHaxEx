@@ -26,7 +26,7 @@ public class EnumType<E extends Enum<E>> extends TypeConverter<E> {
   public E parse(String value) {
     final String lowerValue = value.toLowerCase();
     return Arrays.stream(type().getEnumConstants())
-        .filter(en -> en.name().toLowerCase().startsWith(lowerValue))
+        .filter(en -> en.name().toLowerCase().equalsIgnoreCase(lowerValue))
         .min(Comparator.comparingInt(Enum::ordinal))
         .orElseGet(() -> {
           E[] values = type().getEnumConstants();
