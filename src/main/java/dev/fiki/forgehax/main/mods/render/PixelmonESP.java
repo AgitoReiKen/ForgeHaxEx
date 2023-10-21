@@ -2,27 +2,32 @@ package dev.fiki.forgehax.main.mods.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.pixelmonmod.api.registry.RegistryValue;
+import com.pixelmonmod.pixelmon.api.pokemon.Nature;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.boss.BossTier;
 import com.pixelmonmod.pixelmon.api.pokemon.species.Pokedex;
 import com.pixelmonmod.pixelmon.api.pokemon.species.Species;
+import com.pixelmonmod.pixelmon.api.pokemon.species.gender.Gender;
 import com.pixelmonmod.pixelmon.api.pokemon.stats.*;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.battles.attacks.ImmutableAttack;
 import com.pixelmonmod.pixelmon.entities.WormholeEntity;
 import com.pixelmonmod.pixelmon.entities.npcs.*;
+import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNPCTutorType;
 import dev.fiki.forgehax.api.cmd.AbstractParentCommand;
 import dev.fiki.forgehax.api.cmd.ICommand;
 import dev.fiki.forgehax.api.cmd.IParentCommand;
 import dev.fiki.forgehax.api.cmd.argument.Arguments;
+import dev.fiki.forgehax.api.cmd.argument.ConverterArgument;
 import dev.fiki.forgehax.api.cmd.argument.IArgument;
 import dev.fiki.forgehax.api.cmd.flag.EnumFlag;
 import dev.fiki.forgehax.api.cmd.listener.ICommandListener;
 import dev.fiki.forgehax.api.cmd.listener.IOnUpdate;
 import dev.fiki.forgehax.api.cmd.settings.*;
 import dev.fiki.forgehax.api.cmd.settings.collections.SimpleSettingList;
+import dev.fiki.forgehax.api.cmd.settings.collections.SimpleSettingSet;
 import dev.fiki.forgehax.api.color.Color;
 import dev.fiki.forgehax.api.color.Colors;
 import dev.fiki.forgehax.api.common.PriorityEnum;
@@ -42,6 +47,8 @@ import dev.fiki.forgehax.api.mod.AbstractMod;
 import dev.fiki.forgehax.api.mod.Category;
 import dev.fiki.forgehax.api.mod.ToggleMod;
 import dev.fiki.forgehax.api.modloader.RegisterMod;
+import dev.fiki.forgehax.api.typeconverter.TypeConverter;
+import dev.fiki.forgehax.api.typeconverter.TypeConverters;
 import dev.fiki.forgehax.main.services.GuiService;
 import javafx.stage.Screen;
 import jdk.nashorn.internal.ir.annotations.Immutable;
@@ -65,6 +72,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.mojang.blaze3d.systems.RenderSystem.disableBlend;
 import static com.mojang.blaze3d.systems.RenderSystem.enableTexture;
@@ -72,6 +80,7 @@ import static dev.fiki.forgehax.main.Common.*;
 import static org.lwjgl.opengl.GL11.*;
 
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
+import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.lwjgl.opengl.GL11;
 
 @RegisterMod(
@@ -108,7 +117,7 @@ public class PixelmonESP extends ToggleMod {
       )
   );
 
-  SimpleSettingList<String> search;
+  SimpleSettingList<SearchQuery> search;
   BooleanSetting starter;
   BooleanSetting rarity;
   ContainedSimpleSettingList<String> starters;
@@ -126,12 +135,40 @@ public class PixelmonESP extends ToggleMod {
   Field overrideAttackField = null;
 
   public PixelmonESP() {
-    search = newSimpleSettingList(String.class)
+    newSimpleCommand()
+        .name("searchhelp")
+        .description("Shows all gender, nature, growth values")
+        .executor((args) -> {
+          args.inform(String.format("Genders: %s",
+              Arrays.stream(GenderEnum.values())
+                  .map(GenderEnum::toString).map(String::toLowerCase)
+                  .sorted().collect(Collectors.joining(", "))
+          ));
+          args.inform(String.format("Growth: %s",
+              Arrays.stream(GrowthEnum.values())
+                  .map(GrowthEnum::toString).map(String::toLowerCase)
+                  .sorted().collect(Collectors.joining(", "))
+          ));
+          args.inform(String.format("Natures: %s",
+              Arrays.stream(NatureEnum.values())
+                  .map(NatureEnum::toString).map(String::toLowerCase)
+                  .sorted().collect(Collectors.joining(", "))
+          ));
+        })
+        .build();
+    search = newSimpleSettingList(SearchQuery.class)
         .name("search")
         .description("Searches for pokemon names, case insensitive")
         .supplier(ArrayList::new)
         .listener(new SearchListener())
-        .argument(Arguments.newStringArgument().label("name").build())
+        .argument(
+            Arguments.newConverterArgument(SearchQuery.class)
+                .converter(searchQueryTypeConverter)
+                .minArgumentsConsumed(1)
+                .maxArgumentsConsumed(38)
+                .label("query")
+                .build()
+        )
         .build();
     starter = newBooleanSetting()
         .name("starter")
@@ -244,6 +281,11 @@ public class PixelmonESP extends ToggleMod {
     final IVStore ivs = stats.getIVs();
     final EVStore evs = stats.getEVs();
     HashMap<String, Object> statArguments = new HashMap<String, Object>();
+    HashMap<String, Object> specArguments = new HashMap<String, Object>();
+    specArguments.put("nature", ent.getNature().toString());
+    specArguments.put("gender", ent.getGender().toString());
+    specArguments.put("growth", ent.getGrowth().toString().toUpperCase());
+
     statArguments.put("hp", String.format("%03d", stats.getHP()));
     statArguments.put("atk", String.format("%03d", stats.getAttack()));
     statArguments.put("def", String.format("%03d", stats.getDefense()));
@@ -266,6 +308,7 @@ public class PixelmonESP extends ToggleMod {
     statArguments.put("evspd", String.format("%03d", evs.getStat(BattleStatsType.SPEED)));
 
     String[] statsStr = formatSettings.statFormat.getValue().format(statArguments).split("\n");
+    String[] specsStr = formatSettings.specFormat.getValue().format(specArguments).split("\n");
 
 //    HashMap<String, Object> skillArguments = new HashMap<String, Object>();
 //    skillArguments.put("0", "");
@@ -301,7 +344,9 @@ public class PixelmonESP extends ToggleMod {
 //    for (String s : skillsStr) {
 //      out.text.add(new MutablePair<>(s, Colors.WHITE_SMOKE));
 //    }
-
+    for (String s : specsStr) {
+      out.text.add(new MutablePair<>(s, Colors.WHITE_SMOKE));
+    }
   }
 
   DrawData getDrawData(Entity ent, float partialTicks) {
@@ -332,12 +377,23 @@ public class PixelmonESP extends ToggleMod {
       int level = pokemon.getPokemonLevel();
       boolean isLegendary = pokemon.isLegendary();
       boolean isUltraBeast = pokemon.isUltraBeast();
-      boolean isWild = pokemon.getOwnerPlayer() == null;
+      boolean isWild = pokemon.getOriginalTrainer() == null && pokemon.getOriginalTrainerUUID() == null && pokemon.getOwnerPlayer() == null;
       boolean isShiny = pokemon.getPalette().getName().equals("shiny");
       boolean isBoss = bossTier != null && bossTier.isBoss();
       boolean isCatchable = !pokemon.isUncatchable();
       val registry = pokemon.getSpecies().getRegistryValue();
       boolean isSearching = searchSpecies.contains(registry);
+      if (isSearching) {
+        EnumGrowth growth = pokemon.getGrowth();
+        Nature nature = pokemon.getNature();
+        Gender gender = pokemon.getGender();
+        isSearching = search.stream().anyMatch(x ->
+            x.pokemon.equalsIgnoreCase(pokemonName)
+                && (x.growth.isEmpty() || x.growth.stream().anyMatch(gr -> gr.value == growth))
+                && (x.nature.isEmpty() || x.nature.stream().anyMatch(nt -> nt.value == nature))
+                && (x.gender.isEmpty() || x.gender.stream().anyMatch(gn -> gn.value == gender))
+        );
+      }
       boolean isStarter = false;
       boolean isRare = false;
       boolean isRaid = pokemonEntity.isRaidPokemon();
@@ -484,9 +540,9 @@ public class PixelmonESP extends ToggleMod {
       nameArguments.put("dist", distanceTo);
       String name = formatSettings.npcNameFormat.getValue().format(nameArguments);
 
+      data.text.add(new MutablePair<>(name, colorPalette.wormhole.getValue()));
       double textWidth = Render2D.getStringWidth(name) + (drawSettings.boxWidthMargin * 2);
       double textHeight = (Render2D.getStringHeight() + (drawSettings.boxHeightMargin * 2)) * (data.text.size());
-      data.text.add(new MutablePair<>(name, colorPalette.wormhole.getValue()));
       data.background = new MutablePair<>(new Vector2f((float) textWidth, (float) textHeight), colorPalette.uncatchable.getValue());
       data.distanceTo = distanceTo;
       data.entityScreenPos = screenPos;
@@ -864,12 +920,121 @@ public class PixelmonESP extends ToggleMod {
     }
   }
 
+  public enum GrowthEnum {
+    PYGMY(EnumGrowth.Pygmy),
+    RUNT(EnumGrowth.Runt),
+    SMALL(EnumGrowth.Small),
+    ORDINARY(EnumGrowth.Ordinary),
+    HUGE(EnumGrowth.Huge),
+    GIANT(EnumGrowth.Giant),
+    ENORMOUS(EnumGrowth.Enormous),
+    GINORMOUS(EnumGrowth.Ginormous),
+    MICROSCOPIC(EnumGrowth.Microscopic);
+
+    private final EnumGrowth value;
+
+    GrowthEnum(EnumGrowth growth) {
+      this.value = growth;
+    }
+
+    // Custom method to get the string representation based on the integer value
+    public static String getStringValue(EnumGrowth value) {
+      for (GrowthEnum en : GrowthEnum.values()) {
+        if (en.value == value) {
+          return en.toString();
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(value).toUpperCase();
+    }
+  }
+
+  public enum NatureEnum {
+    HARDY(Nature.HARDY),
+    SERIOUS(Nature.SERIOUS),
+    DOCILE(Nature.DOCILE),
+    BASHFUL(Nature.BASHFUL),
+    QUIRKY(Nature.QUIRKY),
+    LONELY(Nature.LONELY),
+    BRAVE(Nature.BRAVE),
+    ADAMANT(Nature.ADAMANT),
+    NAUGHTY(Nature.NAUGHTY),
+    BOLD(Nature.BOLD),
+    RELAXED(Nature.RELAXED),
+    IMPISH(Nature.IMPISH),
+    LAX(Nature.LAX),
+    TIMID(Nature.TIMID),
+    HASTY(Nature.HASTY),
+    JOLLY(Nature.JOLLY),
+    NAIVE(Nature.NAIVE),
+    MODEST(Nature.MODEST),
+    MILD(Nature.MILD),
+    QUIET(Nature.QUIET),
+    RASH(Nature.RASH),
+    CALM(Nature.CALM),
+    GENTLE(Nature.GENTLE),
+    SASSY(Nature.SASSY),
+    CAREFUL(Nature.CAREFUL);
+
+    private final Nature value;
+
+    NatureEnum(Nature value) {
+      this.value = value;
+    }
+
+    // Custom method to get the string representation based on the integer value
+    public static String getStringValue(Nature value) {
+      for (NatureEnum en : NatureEnum.values()) {
+        if (en.value == value) {
+          return en.toString();
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(value);
+    }
+  }
+
+  public enum GenderEnum {
+    MALE(Gender.MALE),
+    FEMALE(Gender.FEMALE),
+    NONE(Gender.NONE);
+
+    private final Gender value;
+
+    GenderEnum(Gender value) {
+      this.value = value;
+    }
+
+    // Custom method to get the string representation based on the integer value
+    public static String getStringValue(Gender value) {
+      for (GenderEnum en : GenderEnum.values()) {
+        if (en.value == value) {
+          return en.toString();
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(value);
+    }
+  }
+
   void updateSearchSpecies() {
     searchSpecies.clear();
     Optional<AbstractMod> guiService = getForgeHax().getModManager().getMods().filter(mod -> mod instanceof GuiService).findFirst();
     GuiService gui = (GuiService) guiService.orElse(null);
     search.forEach(x -> {
-      Optional<RegistryValue<Species>> registry = PixelmonSpecies.get(x);
+      Optional<RegistryValue<Species>> registry = PixelmonSpecies.get(x.pokemon);
       if (!registry.isPresent()) {
         if (gui != null)
           gui.getConsole().addMessage(String.format("Couldn't find %s", x));
@@ -1112,6 +1277,7 @@ public class PixelmonESP extends ToggleMod {
     public final StringSetting npcNameFormat;
     public final StringSetting skillFormat;
     public final StringSetting statFormat;
+    public final StringSetting specFormat;
 
 
     @Builder
@@ -1143,6 +1309,11 @@ public class PixelmonESP extends ToggleMod {
           .name("statFormat")
           .description("Available keys {hp, atk, def, spd, spa, spd, (ivhp, evhp, etc..)}")
           .defaultTo("HP: {hp} {ivhp} SP: {spd} {ivspd}\nAT: {atk} {ivatk} PD: {def} {ivdef}\nSA: {sat} {ivsat} SD: {sdf} {ivsdf}")
+          .build();
+      specFormat = newStringSetting()
+          .name("specFormat")
+          .description("Available keys {gender, growth, nature}")
+          .defaultTo("Gender: {gender}\nGrowth: {growth}\nPersona: {nature}")
           .build();
       onFullyConstructed();
     }
@@ -1326,6 +1497,86 @@ public class PixelmonESP extends ToggleMod {
           .defaultTo(0.05)
           .build();
       onFullyConstructed();
+    }
+  }
+
+  TypeConverter<SearchQuery> searchQueryTypeConverter = new SearchQueryType();
+
+  private class SearchQueryType extends TypeConverter<SearchQuery> {
+
+
+    @Override
+    public String label() {
+      return "query";
+    }
+
+    @Override
+    public Class<SearchQuery> type() {
+      return SearchQuery.class;
+    }
+
+    @Override
+    public SearchQuery parse(String value) {
+      String[] args = value.split(" ");
+      if (args.length == 0) {
+        throw new IllegalArgumentException("Expected pokemon name");
+      }
+      SearchQuery query = new SearchQuery();
+
+      query.pokemon = args[0];
+      RegistryValue<Species> pokemon = PixelmonSpecies.get(query.pokemon).orElse(null);
+      if (pokemon == null) {
+        throw new IllegalArgumentException(String.format("Pokemon %s not found", query.pokemon));
+      }
+
+      for (int i = 1; i < args.length; ++i) {
+        String arg = args[i];
+        if (Arrays.stream(GrowthEnum.values()).anyMatch(x -> x.name().equalsIgnoreCase(arg))) {
+//          String lowercase = arg.toLowerCase();
+//          String normalized = lowercase.substring(0, 1).toUpperCase() + arg.toLowerCase().substring(1);
+          query.growth.add(GrowthEnum.valueOf(arg.toUpperCase()));
+        } else if (Arrays.stream(NatureEnum.values()).anyMatch(x -> x.name().equalsIgnoreCase(arg))) {
+          query.nature.add(NatureEnum.valueOf(arg.toUpperCase()));
+        } else if (Arrays.stream(GenderEnum.values()).anyMatch(x -> x.name().equalsIgnoreCase(arg))) {
+          query.gender.add(GenderEnum.valueOf(arg.toUpperCase()));
+        } else {
+          throw new IllegalArgumentException(String.format("Argument %s is unknown to growth, nature or gender", arg));
+        }
+      }
+      return query;
+    }
+
+    @Override
+    public String convert(SearchQuery value) {
+      StringBuilder specs = new StringBuilder();
+      for (GenderEnum g : value.gender) {
+        specs.append(g.toString());
+        specs.append(',');
+      }
+      for (NatureEnum g : value.nature) {
+        specs.append(g.toString());
+        specs.append(',');
+      }
+      for (GrowthEnum g : value.growth) {
+        specs.append(g.toString());
+        specs.append(',');
+      }
+      if (specs.length() > 0) specs.deleteCharAt(specs.length() - 1);
+      return String.format("%s [%s]", value.pokemon, specs.toString());
+    }
+  }
+
+  public class SearchQuery {
+    public String pokemon;
+    public HashSet<GrowthEnum> growth;
+    public HashSet<NatureEnum> nature;
+    public HashSet<GenderEnum> gender;
+
+    public SearchQuery() {
+      pokemon = "";
+      growth = new HashSet<>();
+      nature = new HashSet<>();
+      gender = new HashSet<>();
     }
   }
 }
