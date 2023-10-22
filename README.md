@@ -4,7 +4,7 @@ Main settings are:
 - `priorities`
 - `colors`
 - `draw`
-- `search`
+- `search <pokemon> <growths> <natures> <genders>`
 
 It has many options which i won't specify because i've made it for myself and i've no idea if anyone will ever find this repo
 
