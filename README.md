@@ -5,6 +5,7 @@ Main settings are:
 - `colors`
 - `draw`
 - `search <pokemon> <growths> <natures> <genders>`
+- `searchhelp`
 
 It has many options which i won't specify because i've made it for myself and i've no idea if anyone will ever find this repo
 
