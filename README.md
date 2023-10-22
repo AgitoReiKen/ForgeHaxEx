@@ -1,4 +1,4 @@
-**PixelmonESP** can show traces, boxes, names, widgets (nearby GOOD entities), info (currently name and stats (+iv, +evs))
+**PixelmonESP** can show traces, boxes, names, widgets (nearby GOOD entities), info
 
 Main settings are:
 - `priorities`
