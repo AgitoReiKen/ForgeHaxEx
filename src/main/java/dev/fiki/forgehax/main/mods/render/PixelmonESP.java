@@ -10,6 +10,9 @@ import com.pixelmonmod.pixelmon.api.pokemon.species.Species;
 import com.pixelmonmod.pixelmon.api.pokemon.species.gender.Gender;
 import com.pixelmonmod.pixelmon.api.pokemon.stats.*;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
+import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
+import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
+import com.pixelmonmod.pixelmon.api.util.PixelmonPlayerUtils;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.battles.attacks.ImmutableAttack;
 import com.pixelmonmod.pixelmon.entities.WormholeEntity;
@@ -63,6 +66,8 @@ import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.NPCMerchant;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
@@ -371,13 +376,13 @@ public class PixelmonESP extends ToggleMod {
       boolean isLookingAt = isPlayerLookingAt(screenPos);
       int distanceTo = (int) getGameRenderer().getMainCamera().getPosition().distanceTo(bottomPos);
       data.distanceTo = distanceTo;
-      isLookingAt &= distanceTo <= drawSettings.maxLookingDistance.getValue();
 
+      isLookingAt &= distanceTo <= drawSettings.maxLookingDistance.getValue();
       String pokemonName = pokemon.getSpecies().getName();
       int level = pokemon.getPokemonLevel();
       boolean isLegendary = pokemon.isLegendary();
       boolean isUltraBeast = pokemon.isUltraBeast();
-      boolean isWild = pokemon.getOriginalTrainer() == null && pokemon.getOriginalTrainerUUID() == null && pokemon.getOwnerPlayer() == null;
+      boolean isWild = pokemonEntity.getOwnerUUID() == null;
       boolean isShiny = pokemon.getPalette().getName().equals("shiny");
       boolean isBoss = bossTier != null && bossTier.isBoss();
       boolean isCatchable = !pokemon.isUncatchable();
@@ -496,8 +501,12 @@ public class PixelmonESP extends ToggleMod {
         }
       }
       if (data.priority == Priority.NONE) {
-        data.text.add(new MutablePair<>(name, colorPalette.common.getValue()));
         data.priority = priorities.common.getValue();
+        data.text.add(new MutablePair<>(name, colorPalette.common.getValue()));
+        if (isLookingAt && data.priority.value >= infoPriority) {
+          makePokemonInfo(pokemon, data);
+          data.drawInfo = true;
+        }
       }
       String longestText = "";
       for (MutablePair<String, Color> text : data.text) {
@@ -1237,9 +1246,9 @@ public class PixelmonESP extends ToggleMod {
                                 @Singular Collection<EnumFlag> flags) {
       super(parent, name, aliases, description, flags);
       common = newColorSetting().name("common").description("").defaultTo(Colors.SILVER).build();
-      starter = newColorSetting().name("starter").description("").defaultTo(Colors.LIGHT_BLUE).build();
-      rare = newColorSetting().name("rare").description("").defaultTo(Colors.PINK).build();
-      shiny = newColorSetting().name("shiny").description("").defaultTo(Colors.LIGHT_CORAL).build();
+      starter = newColorSetting().name("starter").description("").defaultTo(Colors.WHITE).build();
+      rare = newColorSetting().name("rare").description("").defaultTo(Colors.WHITE).build();
+      shiny = newColorSetting().name("shiny").description("").defaultTo(Colors.GOLDEN_ROD).build();
       legendary = newColorSetting().name("legendary").description("").defaultTo(Colors.MEDIUM_ORCHID).build();
       search = newColorSetting().name("search").description("").defaultTo(Colors.LIGHT_BLUE).build();
       ultrabeast = newColorSetting().name("ultrabeast").description("").defaultTo(Colors.MEDIUM_ORCHID).build();
