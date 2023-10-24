@@ -4,6 +4,7 @@ import com.pixelmonmod.pixelmon.blocks.ApricornLeavesBlock;
 import com.pixelmonmod.pixelmon.blocks.BerryLeavesBlock;
 import dev.fiki.forgehax.api.BlockHelper;
 import dev.fiki.forgehax.api.cmd.settings.IntegerSetting;
+import dev.fiki.forgehax.api.cmd.settings.KeyBindingSetting;
 import dev.fiki.forgehax.api.color.Colors;
 import dev.fiki.forgehax.api.common.PriorityEnum;
 import dev.fiki.forgehax.api.draw.Render2D;
@@ -14,6 +15,7 @@ import dev.fiki.forgehax.api.extension.BlockEx;
 import dev.fiki.forgehax.api.extension.EntityEx;
 import dev.fiki.forgehax.api.extension.VectorEx;
 import dev.fiki.forgehax.api.extension.VertexBuilderEx;
+import dev.fiki.forgehax.api.key.KeyConflictContexts;
 import dev.fiki.forgehax.api.mod.Category;
 import dev.fiki.forgehax.api.mod.ToggleMod;
 import dev.fiki.forgehax.api.modloader.RegisterMod;
@@ -24,6 +26,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.multiplayer.PlayerController;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -40,6 +43,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static dev.fiki.forgehax.main.Common.*;
+
 @RegisterMod(
     name = "ApricornHarvest",
     description = "Use to harvest nearby apricorns",
@@ -63,8 +67,21 @@ public class ApricornHarvest extends ToggleMod {
       .min(20)
       .max(4000)
       .build();
-
+  private final KeyBindingSetting harvestBind;
+  void onHarvest(KeyBinding key)
+  {
+    fillBlocks();
+  }
   public ApricornHarvest() {
+    harvestBind = newKeyBindingSetting()
+        .name("harvestBind")
+        .description("Key bind to start harvesting")
+        .unbound()
+        .defaultKeyName()
+        .defaultKeyCategory()
+        .conflictContext(KeyConflictContexts.inGame())
+        .keyPressedListener(this::onHarvest)
+        .build();
     try {
       apricornField = ApricornLeavesBlock.class.getDeclaredField("apricorn");
       apricornField.setAccessible(true);
@@ -74,26 +91,10 @@ public class ApricornHarvest extends ToggleMod {
 
   @Override
   protected void onEnabled() {
-    if (task == null || task.isDone()) {
-      fillBlocks();
-      task = executor.submit(() -> {
-        try {
-          keepHarvesting(interval.getValue());
-        } catch (InterruptedException e) {
-          log.debug(e);
-        }
-      });
-    } else {
-      fillBlocks();
-    }
-
-    super.disable();
+    fillBlocks();
   }
 
-  ReentrantLock lock = new ReentrantLock();
-  Future task = null;
   final ArrayList<BlockPos> blocks = new ArrayList<>();
-  ExecutorService executor = Executors.newFixedThreadPool(1);
 
   void fillBlocks() {
     val player = getLocalPlayer();
@@ -105,10 +106,11 @@ public class ApricornHarvest extends ToggleMod {
       Block block = state.getBlock();
       if (!(block instanceof ApricornLeavesBlock ||
           block instanceof BerryLeavesBlock)) continue;
-      synchronized (blocks) {
-        if (!blocks.contains(pos)) {
-          blocks.add(pos);
-        }
+      Integer age = state.getValue(block instanceof ApricornLeavesBlock
+          ? ApricornLeavesBlock.AGE : BerryLeavesBlock.AGE);
+      if (age < 2) continue;
+      if (!blocks.contains(pos)) {
+        blocks.add(pos);
       }
 
     }
@@ -130,35 +132,30 @@ public class ApricornHarvest extends ToggleMod {
     return false;
   }
 
-  void keepHarvesting(int intervalMs) throws InterruptedException {
-    val player = getLocalPlayer();
-    val controller = getPlayerController();
-    ClientWorld world = getWorld();
 
-    while (true) {
-      if (blocks.size() <= 0 || lock.isLocked()) Thread.sleep(100);
-      BlockPos pos;
-      int idx;
-      synchronized (blocks) {
-        idx = blocks.size() - 1;
-        pos = blocks.get(idx);
-      }
-
-      BlockState state = world.getBlockState(pos);
-      Block block = state.getBlock();
-      if (harvest(pos, state, block,
-          player, world, controller))
-        Thread.sleep(intervalMs);
-      synchronized (blocks) {
-        blocks.remove(idx);
-      }
-    }
-
-  }
+  long nextUpdate = 0;
 
   @SubscribeListener
   public void onTick(PreGameTickEvent event) {
+    long time = System.currentTimeMillis();
+    if (time < nextUpdate || blocks.isEmpty()) return;
+    val player = getLocalPlayer();
+    val controller = getPlayerController();
+    ClientWorld world = getWorld();
+    BlockPos pos;
+    int idx;
+    idx = blocks.size() - 1;
+    pos = blocks.get(idx);
+
+    BlockState state = world.getBlockState(pos);
+    Block block = state.getBlock();
+    if (harvest(pos, state, block,
+        player, world, controller)) {
+      nextUpdate = time + interval.getValue();
+    }
+    blocks.remove(idx);
   }
+
   @SubscribeListener(priority = PriorityEnum.LOW)
   public void onRender2D(final RenderPlaneEvent.Back event) {
     int size = blocks.size();
