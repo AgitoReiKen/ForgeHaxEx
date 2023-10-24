@@ -37,8 +37,8 @@ public class ConsoleInterface implements IGuiEventListener, IConsole {
 
   private float scale = 1.f;
 
-  private int maxSize = 150;
-  private int maxLines = 15;
+  private int maxSize = 100;
+  private int maxLines = 10;
   private int fadeOutDuration = 20;
   private int messageDuration = 100;
 
