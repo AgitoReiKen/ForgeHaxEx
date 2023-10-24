@@ -123,6 +123,9 @@ public class PixelmonESP extends ToggleMod {
   );
 
   SimpleSettingList<SearchQuery> search;
+  SimpleSettingSet<GrowthEnum> searchByGrowth;
+  SimpleSettingSet<NatureEnum> searchByNature;
+  FloatSetting searchByIvs;
   BooleanSetting starter;
   BooleanSetting rarity;
   ContainedSimpleSettingList<String> starters;
@@ -220,6 +223,27 @@ public class PixelmonESP extends ToggleMod {
     searchSpecies = new ArrayList<>();
     starterSpecies = new ArrayList<>();
     rareSpecies = new ArrayList<>();
+    searchByGrowth = newSimpleSettingEnumSet(GrowthEnum.class)
+        .name("growthsearch")
+        .alias("gsearch")
+        .argument(Arguments.newEnumArgument(GrowthEnum.class).label("id").build())
+        .description("Search by growth")
+        .supplier(HashSet::new)
+        .build();
+    searchByNature = newSimpleSettingEnumSet(NatureEnum.class)
+        .name("naturesearch")
+        .alias("nsearch")
+        .argument(Arguments.newEnumArgument(NatureEnum.class).label("id").build())
+        .description("Search by nature")
+        .supplier(HashSet::new)
+        .build();
+    searchByIvs = newFloatSetting()
+        .name("ivsearch")
+        .description("Search by ivs (if higher than)")
+        .defaultTo(0.f)
+        .min(0.f)
+        .max(100.f)
+        .build();
   }
 
   @Override
@@ -257,7 +281,7 @@ public class PixelmonESP extends ToggleMod {
 
   Priority getPriorityForBossTier(String bossTierID, boolean isMega) {
     Priority priority;
-    if ("common".equals(bossTierID)) {
+    if ("common".equals(bossTierID) || "notboss".equalsIgnoreCase(bossTierID)) {
       priority = priorities.bossCommon.getValue();
     } else if ("uncommon".equals(bossTierID)) {
       priority = priorities.bossUncommon.getValue();
@@ -392,12 +416,22 @@ public class PixelmonESP extends ToggleMod {
         EnumGrowth growth = pokemon.getGrowth();
         Nature nature = pokemon.getNature();
         Gender gender = pokemon.getGender();
+        float ivs = (float) pokemon.getIVs().getPercentage(2);
         isSearching = search.stream().anyMatch(x ->
             x.pokemon.equalsIgnoreCase(pokemonName)
                 && (x.growth.isEmpty() || x.growth.stream().anyMatch(gr -> gr.value == growth))
                 && (x.nature.isEmpty() || x.nature.stream().anyMatch(nt -> nt.value == nature))
                 && (x.gender.isEmpty() || x.gender.stream().anyMatch(gn -> gn.value == gender))
+                && ivs >= x.ivs
         );
+      } else {
+        EnumGrowth growth = pokemon.getGrowth();
+        Nature nature = pokemon.getNature();
+        float ivs = (float) pokemon.getIVs().getPercentage(2);
+        isSearching =
+            searchByGrowth.stream().anyMatch(x -> x.value == growth) ||
+                searchByNature.stream().anyMatch(x -> x.value == nature) ||
+                (searchByIvs.getValue() > 0 && ivs >= searchByIvs.getValue());
       }
       boolean isStarter = false;
       boolean isRare = false;
@@ -757,6 +791,8 @@ public class PixelmonESP extends ToggleMod {
       float drawAtX = baseOffset.x;
       float drawAtY = baseOffset.y;
       stack.pushPose();
+      //glEnable(GL_DEPTH_TEST);
+      stack.translate(0, 0, -1.0);
       float scale = drawSettings.infoScale.getValue();
       for (val text : info.text) {
         Render2D.renderString(source, stack.getLastMatrix(), text.left,
@@ -765,6 +801,7 @@ public class PixelmonESP extends ToggleMod {
         textOffset += textHeight;
       }
       triangles.rect(GL_TRIANGLES, drawAtX, drawAtY, size.x, size.y, info.background.right, stack.getLastMatrix());
+      //glClear(GL_DEPTH_BUFFER_BIT);
       stack.popPose();
     } else {
       float offsetY = 0;
@@ -1540,6 +1577,12 @@ public class PixelmonESP extends ToggleMod {
 
       for (int i = 1; i < args.length; ++i) {
         String arg = args[i];
+        try {
+          float ivs = Float.parseFloat(arg);
+          query.ivs = ivs > 0 ? ivs : 0;
+          continue;
+        } catch (Throwable x) {
+        }
         if (Arrays.stream(GrowthEnum.values()).anyMatch(x -> x.name().equalsIgnoreCase(arg))) {
 //          String lowercase = arg.toLowerCase();
 //          String normalized = lowercase.substring(0, 1).toUpperCase() + arg.toLowerCase().substring(1);
@@ -1558,20 +1601,24 @@ public class PixelmonESP extends ToggleMod {
     @Override
     public String convert(SearchQuery value) {
       StringBuilder specs = new StringBuilder();
+      specs.append(value.pokemon);
+      specs.append(' ');
+      specs.append(value.ivs);
+      specs.append(' ');
       for (GenderEnum g : value.gender) {
         specs.append(g.toString());
-        specs.append(',');
+        specs.append(' ');
       }
       for (NatureEnum g : value.nature) {
         specs.append(g.toString());
-        specs.append(',');
+        specs.append(' ');
       }
       for (GrowthEnum g : value.growth) {
         specs.append(g.toString());
-        specs.append(',');
+        specs.append(' ');
       }
       if (specs.length() > 0) specs.deleteCharAt(specs.length() - 1);
-      return String.format("%s [%s]", value.pokemon, specs.toString());
+      return specs.toString();
     }
   }
 
@@ -1580,12 +1627,33 @@ public class PixelmonESP extends ToggleMod {
     public HashSet<GrowthEnum> growth;
     public HashSet<NatureEnum> nature;
     public HashSet<GenderEnum> gender;
+    public float ivs;
 
     public SearchQuery() {
       pokemon = "";
       growth = new HashSet<>();
       nature = new HashSet<>();
       gender = new HashSet<>();
+      ivs = 0.f;
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder specs = new StringBuilder();
+      for (GenderEnum g : gender) {
+        specs.append(g.toString());
+        specs.append(',');
+      }
+      for (NatureEnum g : nature) {
+        specs.append(g.toString());
+        specs.append(',');
+      }
+      for (GrowthEnum g : growth) {
+        specs.append(g.toString());
+        specs.append(',');
+      }
+      if (specs.length() > 0) specs.deleteCharAt(specs.length() - 1);
+      return String.format("%s [%s] (IVs >= %.2f)", pokemon, specs.toString(), ivs * 100);
     }
   }
 }
