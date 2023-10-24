@@ -407,7 +407,7 @@ public class PixelmonESP extends ToggleMod {
       boolean isLegendary = pokemon.isLegendary();
       boolean isUltraBeast = pokemon.isUltraBeast();
       boolean isWild = pokemonEntity.getOwnerUUID() == null;
-      boolean isShiny = pokemon.getPalette().getName().equals("shiny");
+      boolean isShiny = !pokemon.getPalette().getName().equals("none");
       boolean isBoss = bossTier != null && bossTier.isBoss();
       boolean isCatchable = !pokemon.isUncatchable();
       val registry = pokemon.getSpecies().getRegistryValue();

@@ -77,8 +77,6 @@ public class ApricornHarvest extends ToggleMod {
         .name("harvestBind")
         .description("Key bind to start harvesting")
         .unbound()
-        .defaultKeyName()
-        .defaultKeyCategory()
         .conflictContext(KeyConflictContexts.inGame())
         .keyPressedListener(this::onHarvest)
         .build();
