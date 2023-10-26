@@ -16,6 +16,9 @@ import dev.fiki.forgehax.api.extension.EntityEx;
 import dev.fiki.forgehax.api.extension.VectorEx;
 import dev.fiki.forgehax.api.extension.VertexBuilderEx;
 import dev.fiki.forgehax.api.key.KeyConflictContexts;
+import dev.fiki.forgehax.api.key.KeyInput;
+import dev.fiki.forgehax.api.key.KeyInputs;
+import dev.fiki.forgehax.api.mod.AbstractMod;
 import dev.fiki.forgehax.api.mod.Category;
 import dev.fiki.forgehax.api.mod.ToggleMod;
 import dev.fiki.forgehax.api.modloader.RegisterMod;
@@ -73,10 +76,24 @@ public class ApricornHarvest extends ToggleMod {
     fillBlocks();
   }
   public ApricornHarvest() {
+/*
+          .name("bind")
+          .description("Key bind to enable the mod")
+          .unbound()
+          .defaultKeyName()
+          .defaultKeyCategory()
+          .conflictContext(KeyConflictContexts.inGame())
+          .keyDownListener(this::onKeyDown)
+          .keyPressedListener(this::onKeyPressed)
+          .keyReleasedListener(this::onKeyReleased)
+          .build();
+      */
     harvestBind = newKeyBindingSetting()
         .name("harvestBind")
         .description("Key bind to start harvesting")
         .unbound()
+        .keyName("harvest")
+        .defaultKeyCategory()
         .conflictContext(KeyConflictContexts.inGame())
         .keyPressedListener(this::onHarvest)
         .build();

@@ -648,7 +648,7 @@ public class BlockESP extends ToggleMod {
       ArrayList<BlockData> blockDataList = cachedBlockDatas.get(t);
       final int size = blockDataList.size();
       for (int i = 0; i < size; ++i) {
-        if (tracers.contains(i) ? !tracers.get(i) : !defaultTracers.getValue()) continue;
+        if (tracers.size() >= (i + 1) ? !tracers.get(i) : !defaultTracers.getValue()) continue;
         BlockData data = blockDataList.get(i);
         int blocksSize = data.blocks.size();
         Color color = data.color;

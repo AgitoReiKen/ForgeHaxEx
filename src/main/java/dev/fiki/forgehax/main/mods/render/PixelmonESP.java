@@ -1,20 +1,14 @@
 package dev.fiki.forgehax.main.mods.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.pixelmonmod.api.registry.RegistryValue;
 import com.pixelmonmod.pixelmon.api.pokemon.Nature;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.boss.BossTier;
-import com.pixelmonmod.pixelmon.api.pokemon.species.Pokedex;
 import com.pixelmonmod.pixelmon.api.pokemon.species.Species;
 import com.pixelmonmod.pixelmon.api.pokemon.species.gender.Gender;
 import com.pixelmonmod.pixelmon.api.pokemon.stats.*;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
-import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
-import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
-import com.pixelmonmod.pixelmon.api.util.PixelmonPlayerUtils;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
-import com.pixelmonmod.pixelmon.battles.attacks.ImmutableAttack;
 import com.pixelmonmod.pixelmon.entities.WormholeEntity;
 import com.pixelmonmod.pixelmon.entities.npcs.*;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
@@ -23,7 +17,6 @@ import dev.fiki.forgehax.api.cmd.AbstractParentCommand;
 import dev.fiki.forgehax.api.cmd.ICommand;
 import dev.fiki.forgehax.api.cmd.IParentCommand;
 import dev.fiki.forgehax.api.cmd.argument.Arguments;
-import dev.fiki.forgehax.api.cmd.argument.ConverterArgument;
 import dev.fiki.forgehax.api.cmd.argument.IArgument;
 import dev.fiki.forgehax.api.cmd.flag.EnumFlag;
 import dev.fiki.forgehax.api.cmd.listener.ICommandListener;
@@ -51,27 +44,16 @@ import dev.fiki.forgehax.api.mod.Category;
 import dev.fiki.forgehax.api.mod.ToggleMod;
 import dev.fiki.forgehax.api.modloader.RegisterMod;
 import dev.fiki.forgehax.api.typeconverter.TypeConverter;
-import dev.fiki.forgehax.api.typeconverter.TypeConverters;
 import dev.fiki.forgehax.main.services.GuiService;
-import javafx.stage.Screen;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import lombok.*;
 import lombok.experimental.ExtensionMethod;
-import lombok.extern.java.Log;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.NPCMerchant;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.lang.reflect.Field;
@@ -79,13 +61,10 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.mojang.blaze3d.systems.RenderSystem.disableBlend;
-import static com.mojang.blaze3d.systems.RenderSystem.enableTexture;
 import static dev.fiki.forgehax.main.Common.*;
 import static org.lwjgl.opengl.GL11.*;
 
 import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
-import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.lwjgl.opengl.GL11;
 
 @RegisterMod(
@@ -110,15 +89,17 @@ public class PixelmonESP extends ToggleMod {
       ));
   ArrayList<String> rarePokemon = new ArrayList<>(
       Arrays.asList(
-          "Eevee", "Lapras", "Dratini", "Larvitar", "Bagon", "Gible", "Axew", "Deino",
-          "Trapinch", "Feebas", "Spiritomb", "Porygon", "Tropius", "Snorlax", "Riolu",
-          "Beldum", "Cranidos", "Shieldon", "Gligar", "Skarmory", "Heracross", "Scyther",
-          "Pinsir", "Chansey", "Kangaskhan", "Aerodactyl", "Togepi", "Ditto", "Sudowoodo",
-          "Qwilfish", "Corsola", "Delibird", "Sableye", "Mawile", "Plusle", "Minun",
-          "Roselia", "Absol", "Relicanth", "Luvdisc", "Chingling", "Mantyke", "Snorunt",
-          "Glalie", "Froslass", "Vanillite", "Vanillish", "Vanilluxe", "Durant", "Heatmor",
-          "Maractus", "Solrock", "Lunatone", "Hawlucha", "Druddigon", "Bouffalant", "Stantler",
-          "Smeargle", "Kecleon", "Chatot", "Basculin", "Alomomola"
+          "Dratini", "Dragonair", "Dragonite",
+          "Larvitar", "Pupitar", "Tyranitar",
+          "Bagon", "Slegon", "Salamence",
+          "Beldum", "Metang", "Metagross",
+          "Gible", "Gabite", "Garchomp",
+          "Deino", "Zweilous", "Hydreigon",
+          "Goomy", "Sliggoo", "Goodra",
+          "Jangmo-o", "Hakamo-o", "Kommo-o",
+          "Dreepy", "Drakloak", "Dragapult",
+          "Frigibax", "Arctibax", "Baxcalibur",
+          "Diancie"
       )
   );
 
@@ -126,10 +107,11 @@ public class PixelmonESP extends ToggleMod {
   SimpleSettingSet<GrowthEnum> searchByGrowth;
   SimpleSettingSet<NatureEnum> searchByNature;
   FloatSetting searchByIvs;
-  BooleanSetting starter;
-  BooleanSetting rarity;
-  ContainedSimpleSettingList<String> starters;
-  ContainedSimpleSettingList<String> rarities;
+  BooleanSetting searchGroup1;
+  BooleanSetting searchGroup2;
+  BooleanSetting searchNonStandard;
+  ContainedSimpleSettingList<String> group1;
+  ContainedSimpleSettingList<String> group2;
   ColorPaletteSettings colorPalette;
 
   DrawSettings drawSettings;
@@ -137,8 +119,8 @@ public class PixelmonESP extends ToggleMod {
   FormatSettings formatSettings;
   PrioritySettings priorities;
   ArrayList<RegistryValue<Species>> searchSpecies;
-  ArrayList<RegistryValue<Species>> starterSpecies;
-  ArrayList<RegistryValue<Species>> rareSpecies;
+  ArrayList<RegistryValue<Species>> group1Species;
+  ArrayList<RegistryValue<Species>> group2Species;
   Field baseAttackField = null;
   Field overrideAttackField = null;
 
@@ -178,30 +160,39 @@ public class PixelmonESP extends ToggleMod {
                 .build()
         )
         .build();
-    starter = newBooleanSetting()
-        .name("starter")
-        .description("Look for starters")
+    searchNonStandard = newBooleanSetting()
+        .name("nssearch")
+        .description("Look for non standard palettes")
         .defaultTo(true)
         .build();
-    rarity = newBooleanSetting()
-        .name("rarity")
-        .description("Look for rarities")
-        .defaultTo(true)
+    searchGroup1 = newBooleanSetting()
+        .name("g1search")
+        .description("Look for group 1")
+        .defaultTo(false)
         .build();
-    starters = newContainedListSetting(String.class)
-        .name("starters")
-        .description("Starters list")
+    searchGroup2 = newBooleanSetting()
+        .name("g2search")
+        .description("Look for group 2")
+        .defaultTo(false)
+        .build();
+    group1 = newContainedListSetting(String.class)
+        .name("group1")
+        .description("Group 1")
         .argument(Arguments.newStringArgument().label("name").build())
+        .multiarg(Arguments.newStringArgument().label("names")
+            .minArgumentsConsumed(1).maxArgumentsConsumed(1000).build())
         .supplier(ArrayList::new)
-        .listener(new StartersListener())
+        .listener(new Group1Listener())
         .defaultTo(starterPokemon)
         .build();
-    rarities = newContainedListSetting(String.class)
-        .name("rarities")
-        .description("Rarities list")
+    group2 = newContainedListSetting(String.class)
+        .name("group2")
+        .description("Group 2")
         .argument(Arguments.newStringArgument().label("name").build())
+        .multiarg(Arguments.newStringArgument().label("names")
+            .minArgumentsConsumed(1).maxArgumentsConsumed(1000).build())
         .supplier(ArrayList::new)
-        .listener(new RaritiesListener())
+        .listener(new Group2Listener())
         .defaultTo(rarePokemon)
         .build();
     colorPalette = newColorPalette()
@@ -221,8 +212,8 @@ public class PixelmonESP extends ToggleMod {
         .description("Priority settings")
         .build();
     searchSpecies = new ArrayList<>();
-    starterSpecies = new ArrayList<>();
-    rareSpecies = new ArrayList<>();
+    group1Species = new ArrayList<>();
+    group2Species = new ArrayList<>();
     searchByGrowth = newSimpleSettingEnumSet(GrowthEnum.class)
         .name("growthsearch")
         .alias("gsearch")
@@ -262,8 +253,8 @@ public class PixelmonESP extends ToggleMod {
     }
 
     updateSearchSpecies();
-    updateStarterSpecies();
-    updateRareSpecies();
+    updateGroup1Species();
+    updateGroup2Species();
   }
 
   boolean isPlayerLookingAt(ScreenPos centerPos) {
@@ -311,6 +302,7 @@ public class PixelmonESP extends ToggleMod {
     final EVStore evs = stats.getEVs();
     HashMap<String, Object> statArguments = new HashMap<String, Object>();
     HashMap<String, Object> specArguments = new HashMap<String, Object>();
+    specArguments.put("palette", ent.getPalette().getName());
     specArguments.put("nature", ent.getNature().toString());
     specArguments.put("gender", ent.getGender().toString());
     specArguments.put("growth", ent.getGrowth().toString().toUpperCase());
@@ -322,6 +314,7 @@ public class PixelmonESP extends ToggleMod {
     statArguments.put("sdf", String.format("%03d", stats.getSpecialDefense()));
     statArguments.put("spd", String.format("%03d", stats.getSpeed()));
 
+    statArguments.put("ivprc", String.format("%.2f%%", ivs.getPercentage(2)));
     statArguments.put("ivhp", String.format("%03d", ivs.getStat(BattleStatsType.HP)));
     statArguments.put("ivatk", String.format("%03d", ivs.getStat(BattleStatsType.ATTACK)));
     statArguments.put("ivdef", String.format("%03d", ivs.getStat(BattleStatsType.DEFENSE)));
@@ -407,7 +400,8 @@ public class PixelmonESP extends ToggleMod {
       boolean isLegendary = pokemon.isLegendary();
       boolean isUltraBeast = pokemon.isUltraBeast();
       boolean isWild = pokemonEntity.getOwnerUUID() == null;
-      boolean isShiny = !pokemon.getPalette().getName().equals("none");
+      boolean isShiny = pokemon.getPalette().getName().equals("shiny");
+      boolean isNonStandard = !isShiny && searchNonStandard.getValue() && !pokemon.getPalette().getName().equals("none");
       boolean isBoss = bossTier != null && bossTier.isBoss();
       boolean isCatchable = !pokemon.isUncatchable();
       val registry = pokemon.getSpecies().getRegistryValue();
@@ -433,11 +427,11 @@ public class PixelmonESP extends ToggleMod {
                 searchByNature.stream().anyMatch(x -> x.value == nature) ||
                 (searchByIvs.getValue() > 0 && ivs >= searchByIvs.getValue());
       }
-      boolean isStarter = false;
-      boolean isRare = false;
+      boolean isInGroup1 = false;
+      boolean isInGroup2 = false;
       boolean isRaid = pokemonEntity.isRaidPokemon();
-      if (!isSearching && starter.getValue()) isStarter = starterSpecies.contains(registry);
-      if (!isSearching && !isStarter && rarity.getValue()) isRare = rareSpecies.contains(registry);
+      if (!isSearching && searchGroup1.getValue()) isInGroup1 = group1Species.contains(registry);
+      if (!isSearching && !isInGroup1 && searchGroup2.getValue()) isInGroup2 = group2Species.contains(registry);
       int infoPriority = drawSettings.info.getValue().value;
 
 
@@ -479,20 +473,28 @@ public class PixelmonESP extends ToggleMod {
           data.drawInfo = true;
         }
       }
-
-      if (isStarter && data.priority.value < priorities.starter.getValue().value) {
-        data.priority = priorities.starter.getValue();
+      if (isNonStandard && data.priority.value < priorities.nonstandard.getValue().value) {
+        data.priority = priorities.nonstandard.getValue();
         data.text.clear();
-        data.text.add(new MutablePair<>(name, colorPalette.starter.getValue()));
+        data.text.add(new MutablePair<>(name, colorPalette.nonstandard.getValue()));
         if (isLookingAt && data.priority.value >= infoPriority) {
           makePokemonInfo(pokemon, data);
           data.drawInfo = true;
         }
       }
-      if (isRare && data.priority.value < priorities.rare.getValue().value) {
-        data.priority = priorities.rare.getValue();
+      if (isInGroup1 && data.priority.value < priorities.group1.getValue().value) {
+        data.priority = priorities.group1.getValue();
         data.text.clear();
-        data.text.add(new MutablePair<>(name, colorPalette.rare.getValue()));
+        data.text.add(new MutablePair<>(name, colorPalette.group1.getValue()));
+        if (isLookingAt && data.priority.value >= infoPriority) {
+          makePokemonInfo(pokemon, data);
+          data.drawInfo = true;
+        }
+      }
+      if (isInGroup2 && data.priority.value < priorities.group2.getValue().value) {
+        data.priority = priorities.group2.getValue();
+        data.text.clear();
+        data.text.add(new MutablePair<>(name, colorPalette.group2.getValue()));
         if (isLookingAt && data.priority.value >= infoPriority) {
           makePokemonInfo(pokemon, data);
           data.drawInfo = true;
@@ -1092,38 +1094,38 @@ public class PixelmonESP extends ToggleMod {
       gui.getConsole().addMessage(String.format("[Search] Looking for %d pokemons", searchSpecies.size()));
   }
 
-  void updateStarterSpecies() {
-    starterSpecies.clear();
+  void updateGroup1Species() {
+    group1Species.clear();
     Optional<AbstractMod> guiService = getForgeHax().getModManager().getMods().filter(mod -> mod instanceof GuiService).findFirst();
     GuiService gui = guiService.isPresent() ? (GuiService) guiService.get() : null;
-    starters.list.forEach(x -> {
+    group1.list.forEach(x -> {
       Optional<RegistryValue<Species>> registry = PixelmonSpecies.get((String) x);
       if (!registry.isPresent()) {
         if (gui != null)
           gui.getConsole().addMessage(String.format("Couldn't find %s", x));
         return;
       }
-      starterSpecies.add(registry.get());
+      group1Species.add(registry.get());
     });
     if (gui != null)
-      gui.getConsole().addMessage(String.format("[Starter] Looking for %d pokemons", starterSpecies.size()));
+      gui.getConsole().addMessage(String.format("[Group1] Looking for %d pokemons", group1Species.size()));
   }
 
-  void updateRareSpecies() {
-    rareSpecies.clear();
+  void updateGroup2Species() {
+    group2Species.clear();
     Optional<AbstractMod> guiService = getForgeHax().getModManager().getMods().filter(mod -> mod instanceof GuiService).findFirst();
     GuiService gui = guiService.isPresent() ? (GuiService) guiService.get() : null;
-    rarities.list.forEach(x -> {
+    group2.list.forEach(x -> {
       Optional<RegistryValue<Species>> registry = PixelmonSpecies.get((String) x);
       if (!registry.isPresent()) {
         if (gui != null)
           gui.getConsole().addMessage(String.format("Couldn't find %s", x));
         return;
       }
-      rareSpecies.add(registry.get());
+      group2Species.add(registry.get());
     });
     if (gui != null)
-      gui.getConsole().addMessage(String.format("[Rare] Looking for %d pokemons", rareSpecies.size()));
+      gui.getConsole().addMessage(String.format("[Group2] Looking for %d pokemons", group2Species.size()));
   }
 
   public class SearchListener implements IOnUpdate {
@@ -1132,16 +1134,15 @@ public class PixelmonESP extends ToggleMod {
     }
   }
 
-  public class StartersListener implements IOnUpdate {
+  public class Group1Listener implements IOnUpdate {
     public void onUpdate(ICommand command) {
-      updateStarterSpecies();
-      ;
+      updateGroup1Species();
     }
   }
 
-  public class RaritiesListener implements IOnUpdate {
+  public class Group2Listener implements IOnUpdate {
     public void onUpdate(ICommand command) {
-      updateRareSpecies();
+      updateGroup2Species();
     }
   }
 
@@ -1170,10 +1171,11 @@ public class PixelmonESP extends ToggleMod {
   private static class PrioritySettings extends AbstractParentCommand {
 
     public final EnumSetting<Priority> common;
-    public final EnumSetting<Priority> starter;
-    public final EnumSetting<Priority> rare;
+    public final EnumSetting<Priority> group1;
+    public final EnumSetting<Priority> group2;
     public final EnumSetting<Priority> search;
     public final EnumSetting<Priority> shiny;
+    public final EnumSetting<Priority> nonstandard;
     public final EnumSetting<Priority> ultrabeast;
     public final EnumSetting<Priority> legendary;
     public final EnumSetting<Priority> raid;
@@ -1200,10 +1202,11 @@ public class PixelmonESP extends ToggleMod {
                             @Singular Collection<EnumFlag> flags) {
       super(parent, name, aliases, description, flags);
       common = newEnumSetting(Priority.class).name("common").description("").defaultTo(Priority.LOWEST).build();
-      starter = newEnumSetting(Priority.class).name("starter").description("").defaultTo(Priority.LOW).build();
-      rare = newEnumSetting(Priority.class).name("rare").description("").defaultTo(Priority.LOW).build();
+      group1 = newEnumSetting(Priority.class).name("group1").description("").defaultTo(Priority.BELOW_AVERAGE).build();
+      group2 = newEnumSetting(Priority.class).name("group2").description("").defaultTo(Priority.BELOW_AVERAGE).build();
       search = newEnumSetting(Priority.class).name("search").description("").defaultTo(Priority.BELOW_AVERAGE).build();
       shiny = newEnumSetting(Priority.class).name("shiny").description("").defaultTo(Priority.AVERAGE).build();
+      nonstandard = newEnumSetting(Priority.class).name("nonstandard").description("").defaultTo(Priority.LOWEST).build();
       ultrabeast = newEnumSetting(Priority.class).name("ultrabeast").description("").defaultTo(Priority.CRITICAL).build();
       legendary = newEnumSetting(Priority.class).name("legendary").description("").defaultTo(Priority.CRITICAL).build();
       raid = newEnumSetting(Priority.class).name("raid").description("").defaultTo(Priority.HIGH).build();
@@ -1242,6 +1245,7 @@ public class PixelmonESP extends ToggleMod {
                                       @NonNull Supplier<List<T>> supplier,
                                       @Singular("defaultsTo") Collection<T> defaultTo,
                                       @NonNull IArgument<T> argument,
+                                      @NonNull IArgument<T> multiarg,
                                       @Singular List<ICommandListener> listeners) {
       super(parent, name, aliases, description, flags);
       list = SimpleSettingList.<T>builder().parent(this)
@@ -1252,6 +1256,19 @@ public class PixelmonESP extends ToggleMod {
           .defaultTo(defaultTo)
           .listeners(listeners)
           .build();
+
+      newSimpleCommand()
+          .name("multiadd")
+          .description("Multi add space split items")
+          .argument(multiarg)
+          .executor(args -> {
+            String arg = (String) args.get(0).getValue();
+            String[] split = arg.split(" ");
+            for (String s : split) {
+              list.add(multiarg.parse(s));
+            }
+          })
+          .build();
       onFullyConstructed();
     }
   }
@@ -1261,10 +1278,11 @@ public class PixelmonESP extends ToggleMod {
   private static class ColorPaletteSettings extends AbstractParentCommand {
 
     public final ColorSetting common;
-    public final ColorSetting starter;
-    public final ColorSetting rare;
+    public final ColorSetting group1;
+    public final ColorSetting group2;
     public final ColorSetting search;
     public final ColorSetting shiny;
+    public final ColorSetting nonstandard;
     public final ColorSetting ultrabeast;
     public final ColorSetting legendary;
     public final ColorSetting raid;
@@ -1283,8 +1301,8 @@ public class PixelmonESP extends ToggleMod {
                                 @Singular Collection<EnumFlag> flags) {
       super(parent, name, aliases, description, flags);
       common = newColorSetting().name("common").description("").defaultTo(Colors.SILVER).build();
-      starter = newColorSetting().name("starter").description("").defaultTo(Colors.WHITE).build();
-      rare = newColorSetting().name("rare").description("").defaultTo(Colors.WHITE).build();
+      group1 = newColorSetting().name("group1").description("").defaultTo(Colors.ALICE_BLUE).build();
+      group2 = newColorSetting().name("group2").description("").defaultTo(Colors.AQUA).build();
       shiny = newColorSetting().name("shiny").description("").defaultTo(Colors.GOLDEN_ROD).build();
       legendary = newColorSetting().name("legendary").description("").defaultTo(Colors.MEDIUM_ORCHID).build();
       search = newColorSetting().name("search").description("").defaultTo(Colors.LIGHT_BLUE).build();
@@ -1295,6 +1313,7 @@ public class PixelmonESP extends ToggleMod {
       relearner = newColorSetting().name("relearner").description("").defaultTo(Colors.KHAKI).build();
       trader = newColorSetting().name("trader").description("").defaultTo(Colors.KHAKI).build();
       fisherman = newColorSetting().name("fisherman").description("").defaultTo(Colors.KHAKI).build();
+      nonstandard = newColorSetting().name("nonstandard").description("").defaultTo(Colors.CHOCOLATE).build();
 
 
       catchable = newColorSetting()
@@ -1353,13 +1372,13 @@ public class PixelmonESP extends ToggleMod {
           .build();
       statFormat = newStringSetting()
           .name("statFormat")
-          .description("Available keys {hp, atk, def, spd, spa, spd, (ivhp, evhp, etc..)}")
-          .defaultTo("HP: {hp} {ivhp} SP: {spd} {ivspd}\nAT: {atk} {ivatk} PD: {def} {ivdef}\nSA: {sat} {ivsat} SD: {sdf} {ivsdf}")
+          .description("Available keys {hp, atk, def, spd, spa, spd, ivprc (ivhp, evhp, etc..)}")
+          .defaultTo("HP: {hp} {ivhp} SP: {spd} {ivspd}\nAT: {atk} {ivatk} PD: {def} {ivdef}\nSA: {sat} {ivsat} SD: {sdf} {ivsdf}\nIvs: {ivprc}")
           .build();
       specFormat = newStringSetting()
           .name("specFormat")
-          .description("Available keys {gender, growth, nature}")
-          .defaultTo("Gender: {gender}\nGrowth: {growth}\nPersona: {nature}")
+          .description("Available keys {gender, growth, nature, palette}")
+          .defaultTo("Gender: {gender}   {palette}\nGrowth: {growth}\nPersona: {nature}")
           .build();
       onFullyConstructed();
     }
