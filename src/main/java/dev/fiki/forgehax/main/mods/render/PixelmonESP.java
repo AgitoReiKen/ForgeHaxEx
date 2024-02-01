@@ -747,9 +747,14 @@ public class PixelmonESP extends ToggleMod {
       // distance to chunk
       cachedDrawData.clear();
       for (Entity ent : getWorld().entitiesForRendering()) {
-        DrawData data = getDrawData(ent, partialTicks);
-        if (data.priority == Priority.NONE) continue;
-        cachedDrawData.add(data);
+        try {
+          // getDrawData may face null pointers (rarely, but it happened)
+          DrawData data = getDrawData(ent, partialTicks);
+          if (data.priority == Priority.NONE) continue;
+          cachedDrawData.add(data);
+        } catch (Throwable x)
+        {
+        }
       }
     }
     for (DrawData drawData : cachedDrawData) {

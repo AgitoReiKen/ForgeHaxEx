@@ -13,8 +13,8 @@ ext {
 final git = versionDetails()
 
 group 'dev.fiki.forgehax'
-version "${git.lastTag.substring(1)}.r${git.commitDistance}_${git.gitHash}"
-archivesBaseName = "ForgeHax_${minecraftVersion}"
+version "${project.pixelmonVer}"
+archivesBaseName = "ForgeHaxPx_${minecraftVersion}"
 
 final isCiBuilding = System.getenv().get('CI') == 'true'
 
